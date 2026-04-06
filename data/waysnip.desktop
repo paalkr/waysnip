@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=WaySnip
+Comment=Lightweight Wayland screenshot and annotation tool
+Exec=waysnip region
+Icon=waysnip
+Terminal=false
+Type=Application
+Categories=Utility;Graphics;
+Keywords=screenshot;snip;capture;annotate;
+StartupNotify=false

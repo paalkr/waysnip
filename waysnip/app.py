@@ -113,6 +113,9 @@ class WaySnipApp:
     # ---- Command dispatch --------------------------------------------------
 
     def _dispatch(self, command: str) -> None:
+        if command == "tray":
+            # Just stay in tray, no action
+            return
         actions = {
             "region": self.do_capture_region,
             "window": self.do_capture_window,
