@@ -132,12 +132,28 @@ class GalleryWindow(QMainWindow):
         path_str = index.data(ThumbnailRoles.PathRole)
         if not path_str:
             return
-        from waysnip.editor.editor_window import EditorWindow
+        from pathlib import Path as _Path
 
-        pm = QPixmap(path_str)
+        from waysnip.editor.editor_window import EditorWindow
+        from waysnip.save import load_annotations
+
+        file_path = _Path(path_str)
+
+        # Try to load annotation metadata from the PNG
+        original_pm, annotations = load_annotations(file_path)
+
+        if original_pm and not original_pm.isNull() and annotations:
+            # Has metadata — open with original background + editable annotations
+            pm = original_pm
+        else:
+            # No metadata — open as a flat image
+            pm = QPixmap(path_str)
+            annotations = None
+
         if pm.isNull():
             return
-        win = EditorWindow(pm, self._config)
+
+        win = EditorWindow(pm, self._config, annotations=annotations, save_path=path_str)
         # Keep reference so window isn't garbage collected
         if not hasattr(self, "_editor_windows"):
             self._editor_windows = []

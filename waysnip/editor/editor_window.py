@@ -46,11 +46,18 @@ class EditorWindow(QMainWindow):
 
     image_saved = pyqtSignal(str)
 
-    def __init__(self, pixmap: QPixmap, config: AppConfig | None = None, parent: QWidget | None = None) -> None:
+    def __init__(
+        self,
+        pixmap: QPixmap,
+        config: AppConfig | None = None,
+        parent: QWidget | None = None,
+        annotations: list[dict] | None = None,
+        save_path: str | None = None,
+    ) -> None:
         super().__init__(parent)
         self._config = config or AppConfig.load()
-        self._saved = False
-        self._save_path: str | None = None
+        self._saved = save_path is not None
+        self._save_path: str | None = save_path
 
         self.setWindowTitle(f"{APP_DISPLAY_NAME} - Editor")
         self.resize(1200, 800)
@@ -97,6 +104,10 @@ class EditorWindow(QMainWindow):
 
         # Listen for selection changes to update properties panel
         self._scene.selectionChanged.connect(self._on_selection_changed)
+
+        # Restore annotations if provided (re-editing a saved image)
+        if annotations:
+            self._restore_annotations(annotations)
 
         # Activate default tool
         self._on_tool_changed("select")
@@ -189,6 +200,18 @@ class EditorWindow(QMainWindow):
             self._canvas.setCursor(cursor)
             self._properties.set_tool_name(name)
             self._update_status()
+
+    # --- Annotation restoration ---
+
+    def _restore_annotations(self, annotations: list[dict]) -> None:
+        """Reconstruct annotation items from serialized data."""
+        # Ensure all item types are registered by importing the tools package
+        import waysnip.editor.tools  # noqa: F401
+
+        for data in annotations:
+            item = BaseAnnotationItem.deserialize(data)
+            if item is not None:
+                self._scene.addItem(item)
 
     # --- Selection ---
 
