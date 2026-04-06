@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from PyQt6.QtCore import QRectF
+from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QUndoStack
 from PyQt6.QtWidgets import (
     QGraphicsScene,
@@ -42,6 +42,9 @@ class AnnotationScene(QGraphicsScene):
         self._background_pixmap = pixmap
         self._background_item = QGraphicsPixmapItem(pixmap)
         self._background_item.setZValue(-1000)
+        self._background_item.setTransformationMode(
+            Qt.TransformationMode.SmoothTransformation
+        )
         self._background_item.setFlag(
             QGraphicsPixmapItem.GraphicsItemFlag.ItemIsMovable, False
         )

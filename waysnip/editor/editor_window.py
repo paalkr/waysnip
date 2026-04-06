@@ -61,7 +61,7 @@ class EditorWindow(QMainWindow):
         self._save_path: str | None = save_path
 
         self.setWindowTitle(f"{APP_DISPLAY_NAME} - Editor")
-        self.resize(1200, 800)
+        self._size_window_to_image(pixmap)
 
         # Scene and canvas
         self._scene = AnnotationScene(self)
@@ -114,12 +114,39 @@ class EditorWindow(QMainWindow):
         # Listen for selection changes to update properties panel
         self._scene.selectionChanged.connect(self._on_selection_changed)
 
+        # Update status bar when zoom changes
+        self._canvas.zoom_changed.connect(self._on_zoom_changed)
+
         # Restore annotations if provided (re-editing a saved image)
         if annotations:
             self._restore_annotations(annotations)
 
         # Activate default tool
         self._on_tool_changed("select")
+
+    # --- Window sizing ---
+
+    def _size_window_to_image(self, pixmap: QPixmap) -> None:
+        """Resize the editor window to fit the image at 100% if possible."""
+        # Approximate chrome overhead (toolbar, statusbar, menubar, properties panel).
+        chrome_w = 280
+        chrome_h = 100
+        min_w, min_h = 900, 500
+
+        ideal_w = pixmap.width() + chrome_w
+        ideal_h = pixmap.height() + chrome_h
+
+        screen = self.screen()
+        if screen is not None:
+            avail = screen.availableGeometry()
+            max_w = int(avail.width() * 0.92)
+            max_h = int(avail.height() * 0.92)
+        else:
+            max_w, max_h = 1920, 1080
+
+        w = max(min_w, min(ideal_w, max_w))
+        h = max(min_h, min(ideal_h, max_h))
+        self.resize(w, h)
 
     # --- Menu setup ---
 
@@ -194,9 +221,14 @@ class EditorWindow(QMainWindow):
         zoom_out_action.triggered.connect(self._zoom_out)
         view_menu.addAction(zoom_out_action)
 
+        actual_size_action = QAction("&Actual Size (100%)", self)
+        actual_size_action.setShortcut(QKeySequence("Ctrl+1"))
+        actual_size_action.triggered.connect(self._canvas.zoom_to_actual)
+        view_menu.addAction(actual_size_action)
+
         fit_action = QAction("&Fit to Window", self)
         fit_action.setShortcut(QKeySequence("Ctrl+0"))
-        fit_action.triggered.connect(self._canvas.fit_in_view_on_show)
+        fit_action.triggered.connect(self._canvas.fit_in_view)
         view_menu.addAction(fit_action)
 
     # --- Tool switching ---
@@ -306,6 +338,9 @@ class EditorWindow(QMainWindow):
 
     def _zoom_out(self) -> None:
         self._canvas.zoom_to(self._canvas.zoom_factor / 1.25)
+
+    def _on_zoom_changed(self, factor: float) -> None:
+        self._update_status()
 
     def _copy_to_clipboard(self) -> None:
         pixmap = self._scene.render_to_pixmap()

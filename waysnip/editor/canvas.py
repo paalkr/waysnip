@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt, QPointF
+from PyQt6.QtCore import Qt, QPointF, QTimer, pyqtSignal
 from PyQt6.QtGui import QPainter, QWheelEvent, QMouseEvent, QKeyEvent
 from PyQt6.QtWidgets import QGraphicsView
 
@@ -15,9 +15,12 @@ class AnnotationCanvas(QGraphicsView):
     _MIN_ZOOM = 0.1
     _MAX_ZOOM = 10.0
 
+    zoom_changed = pyqtSignal(float)
+
     def __init__(self, scene: AnnotationScene, parent=None) -> None:
         super().__init__(scene, parent)
         self._zoom_factor: float = 1.0
+        self._user_zoomed: bool = False  # True once the user manually zooms
         self._panning: bool = False
         self._pan_start: QPointF = QPointF()
         self._space_held: bool = False
@@ -38,15 +41,43 @@ class AnnotationCanvas(QGraphicsView):
     def zoom_factor(self) -> float:
         return self._zoom_factor
 
-    def fit_in_view_on_show(self) -> None:
-        """Fit the scene rect into the viewport, called after the widget is shown."""
-        if self.scene() is not None:
-            self.fitInView(self.scene().sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
-            self._zoom_factor = self.transform().m11()
+    def fit_in_view(self) -> None:
+        """Fit the scene into the viewport, capped at 100%.
+
+        Small images stay at 100% (no upscaling). Large images zoom out to fit.
+        """
+        if self.scene() is None:
+            return
+        self.fitInView(self.scene().sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+        fitted = self.transform().m11()
+        if fitted > 1.0:
+            self.resetTransform()
+            self._zoom_factor = 1.0
+        else:
+            self._zoom_factor = fitted
+        self._user_zoomed = False
+        self.zoom_changed.emit(self._zoom_factor)
+
+    # Keep old name as alias for compatibility.
+    fit_in_view_on_show = fit_in_view
+
+    def zoom_to_actual(self) -> None:
+        """Zoom to 100% (1:1 pixels)."""
+        self._user_zoomed = True
+        self.zoom_to(1.0)
 
     def showEvent(self, event) -> None:
         super().showEvent(event)
-        self.fit_in_view_on_show()
+        # Defer fit until the layout is complete — showEvent fires before
+        # the viewport has its final size.
+        QTimer.singleShot(0, self.fit_in_view)
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        # Re-fit when the window is resized, but only if the user hasn't
+        # manually zoomed (Ctrl+scroll, menu zoom, etc.).
+        if self.scene() is not None and not self._user_zoomed:
+            QTimer.singleShot(0, self.fit_in_view)
 
     def zoom_to(self, factor: float, center: QPointF | None = None) -> None:
         """Set absolute zoom level, optionally around a viewport point."""
@@ -62,6 +93,7 @@ class AnnotationCanvas(QGraphicsView):
         new_scene_pos = self.mapToScene(center.toPoint())
         delta = new_scene_pos - old_scene_pos
         self.translate(delta.x(), delta.y())
+        self.zoom_changed.emit(self._zoom_factor)
 
     def wheelEvent(self, event: QWheelEvent) -> None:
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
@@ -72,6 +104,7 @@ class AnnotationCanvas(QGraphicsView):
                 new_zoom = self._zoom_factor / 1.15
             else:
                 return
+            self._user_zoomed = True
             self.zoom_to(new_zoom, event.position())
             event.accept()
         else:
