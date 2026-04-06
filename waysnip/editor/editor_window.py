@@ -211,13 +211,16 @@ class EditorWindow(QMainWindow):
             self._properties._stroke_group.setVisible(not is_blur)
             self._properties._color_group.setVisible(not is_blur)
 
-            # Update panel values to match selected item
+            # Update panel values to match selected item.
+            # Block signals to avoid feedback loops that deselect the item.
+            self._properties.blockSignals(True)
             self._properties.set_pen_color(item.pen_color)
             self._properties.set_fill_color(item.fill_color)
             self._properties.set_pen_width(item.pen_width)
             self._properties.set_opacity(item.item_opacity)
             if is_blur:
                 self._properties._block_size_spin.setValue(item.block_size)
+            self._properties.blockSignals(False)
 
     # --- Properties ---
 

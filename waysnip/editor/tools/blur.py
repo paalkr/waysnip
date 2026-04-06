@@ -79,7 +79,7 @@ class BlurItem(BaseAnnotationItem):
         self._cache_block_size = None
 
     def _render_pixelated(self, painter: QPainter) -> None:
-        """Grab the scene content under this item, pixelate it, and draw it."""
+        """Grab the background under this item, pixelate it, and draw it."""
         scene = self.scene()
         if scene is None:
             return
@@ -101,24 +101,24 @@ class BlurItem(BaseAnnotationItem):
         if w < 1 or h < 1:
             return
 
-        # Temporarily hide this item so we grab the background
-        self.setVisible(False)
+        # Grab the background pixmap directly instead of using
+        # setVisible(False)/True which deselects the item in Qt.
+        bg_pixmap = getattr(scene, "_background_pixmap", None)
+        if bg_pixmap is None or bg_pixmap.isNull():
+            return
 
-        source = QPixmap(w, h)
-        source.fill(QColor(0, 0, 0, 0))
-        p = QPainter(source)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        scene.render(p, source=scene_rect)
-        p.end()
-
-        self.setVisible(True)
+        # Crop the background to our region
+        src_rect = scene_rect.toRect().intersected(bg_pixmap.rect())
+        if src_rect.isEmpty():
+            return
+        source = bg_pixmap.copy(src_rect)
 
         # Pixelate: scale down then back up
         bs = self._block_size
-        small_w = max(1, w // bs)
-        small_h = max(1, h // bs)
+        small_w = max(1, source.width() // bs)
+        small_h = max(1, source.height() // bs)
         small = source.scaled(small_w, small_h, Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.FastTransformation)
-        pixelated = small.scaled(w, h, Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.FastTransformation)
+        pixelated = small.scaled(source.width(), source.height(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.FastTransformation)
 
         self._cached_pixmap = pixelated
         self._cache_rect = QRectF(scene_rect)
