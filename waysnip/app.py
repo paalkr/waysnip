@@ -59,6 +59,7 @@ class WaySnipApp:
         self._config = AppConfig.load()
         self._server: QLocalServer | None = None
         self._tray = None
+        self._region_selector: RegionSelector | None = None
         self._gallery_window = None
         self._settings_dialog = None
         self._pending_command = command
@@ -129,6 +130,11 @@ class WaySnipApp:
     # ---- Capture orchestration ---------------------------------------------
 
     def do_capture_region(self) -> None:
+        # Cancel any existing selector (retry/restart behavior).
+        if self._region_selector is not None:
+            self._region_selector.close()
+            self._region_selector = None
+
         show_cursor = self._config.capture.show_cursor
         path = capture_fullscreen(show_cursor=show_cursor)
         if path is None:
@@ -138,12 +144,14 @@ class WaySnipApp:
             return
 
         def _on_region_selected(cropped):
+            self._region_selector = None
             if cropped is None or cropped.isNull():
                 return
             self._copy_to_clipboard(cropped)
             self._post_capture(cropped)
 
         def _on_cancelled():
+            self._region_selector = None
             if not self._config.tray.enabled:
                 self._app.quit()
 
