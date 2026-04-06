@@ -3,6 +3,18 @@
 All notable changes to WaySnip will be documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.3.0] - 2026-04-06
+
+### Added
+- Custom app icon (monitor with selection rectangle) for launcher, dock, tray, and editor windows
+- Bright symbolic tray icon that's visible on dark panels
+- `waysnip setup` installs the icon to the user's icon theme
+- GNOME dock now shows "WaySnip" with the proper icon instead of "python3"
+
+### Fixed
+- `waysnip setup` installs an app launcher `.desktop` entry (moved from 0.2.1)
+- `waysnip uninstall` cleans up the icon and launcher entry
+
 ## [0.2.1] - 2026-04-06
 
 ### Fixed
