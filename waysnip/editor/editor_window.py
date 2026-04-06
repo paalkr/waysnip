@@ -7,6 +7,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import (
     QAction,
     QCloseEvent,
+    QColor,
     QKeyEvent,
     QKeySequence,
     QPixmap,
@@ -65,6 +66,14 @@ class EditorWindow(QMainWindow):
         # Scene and canvas
         self._scene = AnnotationScene(self)
         self._scene.set_background_pixmap(pixmap)
+
+        # Initialize drawing properties from config
+        self._scene.drawing_properties.update({
+            "pen_color": QColor(self._config.editor.default_pen_color),
+            "fill_color": QColor(self._config.editor.default_fill_color),
+            "pen_width": self._config.editor.default_pen_width,
+            "block_size": self._config.editor.default_blur_block_size,
+        })
         self._canvas = AnnotationCanvas(self._scene, self)
         self.setCentralWidget(self._canvas)
 
@@ -324,11 +333,13 @@ class EditorWindow(QMainWindow):
         self._saved = True
         self.image_saved.emit(str(path))
 
-        # Also copy to clipboard
-        from waysnip.capture.clipboard import ClipboardManager
-        ClipboardManager.copy_image_from_pixmap(flattened)
-
-        self._status_bar.showMessage(f"Saved to {path.name}", 3000)
+        # Copy to clipboard if enabled
+        if self._config.editor.copy_on_save:
+            from waysnip.capture.clipboard import ClipboardManager
+            ClipboardManager.copy_image_from_pixmap(flattened)
+            self._status_bar.showMessage(f"Saved to {path.name} (copied to clipboard)", 3000)
+        else:
+            self._status_bar.showMessage(f"Saved to {path.name}", 3000)
 
     def _save_as(self) -> None:
         from datetime import datetime
@@ -367,10 +378,12 @@ class EditorWindow(QMainWindow):
         self._saved = True
         self.image_saved.emit(path)
 
-        from waysnip.capture.clipboard import ClipboardManager
-        ClipboardManager.copy_image_from_pixmap(flattened)
-
-        self._status_bar.showMessage(f"Saved to {_Path(path).name}", 3000)
+        if self._config.editor.copy_on_save:
+            from waysnip.capture.clipboard import ClipboardManager
+            ClipboardManager.copy_image_from_pixmap(flattened)
+            self._status_bar.showMessage(f"Saved to {_Path(path).name} (copied to clipboard)", 3000)
+        else:
+            self._status_bar.showMessage(f"Saved to {_Path(path).name}", 3000)
 
     # --- Status bar ---
 

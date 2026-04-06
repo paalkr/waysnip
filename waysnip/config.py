@@ -45,6 +45,8 @@ class EditorConfig:
     default_fill_color: str = DEFAULT_FILL_COLOR
     default_font: str = DEFAULT_FONT_FAMILY
     default_font_size: int = DEFAULT_FONT_SIZE
+    default_blur_block_size: int = 10
+    copy_on_save: bool = True
     recent_colors: list[str] = field(default_factory=list)
 
 

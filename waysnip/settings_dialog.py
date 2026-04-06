@@ -204,6 +204,16 @@ class SettingsDialog(QDialog):
         self._font_size.setValue(self._config.editor.default_font_size)
         form.addRow("Default font size:", self._font_size)
 
+        self._blur_block = QSpinBox()
+        self._blur_block.setRange(2, 50)
+        self._blur_block.setSuffix(" px")
+        self._blur_block.setValue(self._config.editor.default_blur_block_size)
+        form.addRow("Default blur block size:", self._blur_block)
+
+        self._copy_on_save = QCheckBox("Copy image to clipboard on save")
+        self._copy_on_save.setChecked(self._config.editor.copy_on_save)
+        form.addRow("", self._copy_on_save)
+
         self._tabs.addTab(w, "Editor")
 
     def _build_tray_tab(self) -> None:
@@ -283,6 +293,8 @@ class SettingsDialog(QDialog):
         self._config.editor.default_pen_width = self._pen_width.value()
         self._config.editor.default_font = self._font_combo.currentFont().family()
         self._config.editor.default_font_size = self._font_size.value()
+        self._config.editor.default_blur_block_size = self._blur_block.value()
+        self._config.editor.copy_on_save = self._copy_on_save.isChecked()
 
         self._config.tray.enabled = self._tray_enabled.isChecked()
         lc_map = {0: "region", 1: "window", 2: "fullscreen", 3: "gallery"}
