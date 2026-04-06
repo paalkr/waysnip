@@ -3,6 +3,12 @@
 All notable changes to WaySnip will be documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.2.1] - 2026-04-06
+
+### Fixed
+- `waysnip setup` now installs an app launcher entry so WaySnip appears in the GNOME application menu
+- `waysnip uninstall` removes the app launcher entry
+
 ## [0.2.0] - 2026-04-06
 
 ### Fixed
