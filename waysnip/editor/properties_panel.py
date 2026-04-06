@@ -124,7 +124,8 @@ class PropertiesPanel(QDockWidget):
         layout.setSpacing(8)
 
         # --- Colors ---
-        color_group = QGroupBox("Colors")
+        self._color_group = QGroupBox("Colors")
+        color_group = self._color_group
         color_layout = QVBoxLayout(color_group)
 
         pen_row = QHBoxLayout()
@@ -152,7 +153,8 @@ class PropertiesPanel(QDockWidget):
         layout.addWidget(color_group)
 
         # --- Line ---
-        line_group = QGroupBox("Stroke")
+        self._stroke_group = QGroupBox("Stroke")
+        line_group = self._stroke_group
         line_layout = QVBoxLayout(line_group)
 
         width_row = QHBoxLayout()
@@ -231,6 +233,9 @@ class PropertiesPanel(QDockWidget):
         """Show/hide tool-specific controls based on the active tool."""
         self._font_group.setVisible(name == "text")
         self._blur_group.setVisible(name == "blur")
+        # Hide stroke/color controls for pixelate — it doesn't use them
+        self._stroke_group.setVisible(name != "blur")
+        self._color_group.setVisible(name != "blur")
 
     def set_pen_color(self, color: QColor) -> None:
         self._pen_color_btn.color = color

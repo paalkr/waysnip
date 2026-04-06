@@ -175,7 +175,7 @@ _TOOL_DEFS = [
     ("numbered_marker", "Marker", _make_marker_icon),
     ("freehand", "Pencil", _make_pencil_icon),
     ("highlight", "Highlight", _make_highlight_icon),
-    ("blur", "Blur", _make_blur_icon),
+    ("blur", "Pixelate", _make_blur_icon),
     ("crop", "Crop", _make_crop_icon),
 ]
 

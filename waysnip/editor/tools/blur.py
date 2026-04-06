@@ -1,11 +1,11 @@
-"""Blur (pixelation) tool and item."""
+"""Pixelate tool and item — obscures regions by pixelating."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from PyQt6.QtCore import Qt, QRectF, QPointF
-from PyQt6.QtGui import QPainter, QPixmap, QColor
+from PyQt6.QtGui import QPainter, QPixmap, QColor, QPen
 from PyQt6.QtWidgets import (
     QGraphicsScene,
     QGraphicsSceneMouseEvent,
@@ -29,8 +29,10 @@ class BlurItem(BaseAnnotationItem):
         self._block_size: int = 10
         self._cached_pixmap: QPixmap | None = None
         self._cache_rect: QRectF | None = None
-        # No pen/fill visible for blur
+        self._cache_block_size: int | None = None
+        # Pixelate has no pen/fill and always full opacity
         self._pen_width = 0
+        self._opacity = 1.0
 
     @property
     def block_size(self) -> int:
@@ -41,6 +43,14 @@ class BlurItem(BaseAnnotationItem):
         self._block_size = max(2, value)
         self._invalidate_cache()
         self.update()
+
+    @property
+    def item_opacity(self) -> float:
+        return 1.0  # Always full opacity for pixelate
+
+    @item_opacity.setter
+    def item_opacity(self, opacity: float) -> None:
+        pass  # Ignore opacity changes for pixelate
 
     def set_rect(self, rect: QRectF) -> None:
         self.prepareGeometryChange()
@@ -59,6 +69,7 @@ class BlurItem(BaseAnnotationItem):
     def _invalidate_cache(self) -> None:
         self._cached_pixmap = None
         self._cache_rect = None
+        self._cache_block_size = None
 
     def _render_pixelated(self, painter: QPainter) -> None:
         """Grab the scene content under this item, pixelate it, and draw it."""
@@ -66,14 +77,14 @@ class BlurItem(BaseAnnotationItem):
         if scene is None:
             return
 
-        # Map rect to scene coordinates
         scene_rect = self.mapRectToScene(self._rect)
 
-        # Check cache
+        # Check cache — must match both rect AND block_size
         if (
             self._cached_pixmap is not None
             and self._cache_rect is not None
             and self._cache_rect == scene_rect
+            and self._cache_block_size == self._block_size
         ):
             painter.drawPixmap(self._rect.toRect(), self._cached_pixmap)
             return
@@ -104,15 +115,14 @@ class BlurItem(BaseAnnotationItem):
 
         self._cached_pixmap = pixelated
         self._cache_rect = QRectF(scene_rect)
+        self._cache_block_size = self._block_size
 
         painter.drawPixmap(self._rect.toRect(), pixelated)
 
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = None) -> None:
         self._render_pixelated(painter)
 
-        # Draw a subtle border when selected
         if self.isSelected():
-            from PyQt6.QtGui import QPen
             painter.setPen(QPen(QColor(0, 120, 215), 1, Qt.PenStyle.DashLine))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawRect(self._rect)
@@ -141,15 +151,9 @@ class BlurItem(BaseAnnotationItem):
         item._block_size = data.get("block_size", 10)
         return item
 
-    def itemChange(self, change, value):
-        """Invalidate cache on position change."""
-        if change == self.GraphicsItemChange.ItemPositionHasChanged:
-            self._invalidate_cache()
-        return super().itemChange(change, value)
-
 
 class BlurTool(BaseTool):
-    """Tool for drawing blur/pixelation regions."""
+    """Tool for drawing pixelation regions."""
 
     name = "blur"
     icon = "blur"
@@ -164,7 +168,9 @@ class BlurTool(BaseTool):
         scene.clearSelection()
         self._start_pos = event.scenePos()
         self._current_item = BlurItem()
-        self._current_item.apply_drawing_properties(scene.drawing_properties)
+        # Apply block_size from drawing properties if set
+        if "block_size" in scene.drawing_properties:
+            self._current_item.block_size = scene.drawing_properties["block_size"]
         self._current_item.setPos(self._start_pos)
         self._current_item.set_rect(QRectF(0, 0, 0, 0))
         scene.addItem(self._current_item)
@@ -181,7 +187,7 @@ class BlurTool(BaseTool):
     def mouse_release(self, scene: QGraphicsScene, event: QGraphicsSceneMouseEvent) -> None:
         if self._current_item is None:
             return
-        if self._current_item._rect.width() < 5 and self._current_item._rect.height() < 5:
+        if self._current_item._rect.width() < 3 and self._current_item._rect.height() < 3:
             scene.removeItem(self._current_item)
         else:
             from waysnip.editor.commands import AddItemCommand
