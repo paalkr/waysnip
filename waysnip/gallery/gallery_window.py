@@ -132,16 +132,18 @@ class GalleryWindow(QMainWindow):
         path_str = index.data(ThumbnailRoles.PathRole)
         if not path_str:
             return
-        try:
-            from waysnip.editor.window import EditorWindow  # type: ignore[import-untyped]
+        from waysnip.editor.editor_window import EditorWindow
 
-            pm = QPixmap(path_str)
-            if pm.isNull():
-                return
-            win = EditorWindow(pm, self._config)
-            win.show()
-        except ImportError:
-            QMessageBox.information(self, APP_DISPLAY_NAME, "Editor is not yet integrated.")
+        pm = QPixmap(path_str)
+        if pm.isNull():
+            return
+        win = EditorWindow(pm, self._config)
+        # Keep reference so window isn't garbage collected
+        if not hasattr(self, "_editor_windows"):
+            self._editor_windows = []
+        self._editor_windows.append(win)
+        win.destroyed.connect(lambda: self._editor_windows.remove(win) if win in self._editor_windows else None)
+        win.show()
 
     def _flatten(self, path: Path, *, in_place: bool) -> None:
         """Flatten annotations into the image (strip metadata layers)."""

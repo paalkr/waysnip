@@ -286,26 +286,68 @@ class EditorWindow(QMainWindow):
         if self._save_path:
             self._do_save(self._save_path)
         else:
-            self._save_as()
+            self._save_auto()
+
+    def _save_auto(self) -> None:
+        """Save using config pattern (no dialog)."""
+        from waysnip.save import save_screenshot
+
+        flattened = self._scene.render_to_pixmap()
+        annotations = [item.serialize() for item in self._scene.get_all_annotations()]
+        original = self._scene.background_pixmap
+
+        path = save_screenshot(flattened, annotations, original, self._config)
+        self._save_path = str(path)
+        self._saved = True
+        self.image_saved.emit(str(path))
+
+        # Also copy to clipboard
+        from waysnip.capture.clipboard import ClipboardManager
+        ClipboardManager.copy_image_from_pixmap(flattened)
+
+        self._status_bar.showMessage(f"Saved to {path.name}", 3000)
 
     def _save_as(self) -> None:
+        from datetime import datetime
+
         save_dir = self._config.get_save_directory()
+        default_name = datetime.now().strftime(self._config.save.pattern)
         path, _ = QFileDialog.getSaveFileName(
             self,
             "Save Screenshot",
-            str(save_dir / "screenshot.png"),
+            str(save_dir / default_name),
             "PNG Image (*.png);;All Files (*)",
         )
         if path:
             self._do_save(path)
 
     def _do_save(self, path: str) -> None:
-        pixmap = self._scene.render_to_pixmap()
-        pixmap.save(path, "PNG")
+        """Save to a specific path (from Save As dialog)."""
+        from pathlib import Path as _Path
+
+        flattened = self._scene.render_to_pixmap()
+        annotations = [item.serialize() for item in self._scene.get_all_annotations()]
+        original = self._scene.background_pixmap
+
+        # Save with metadata embedding
+        image = flattened.toImage()
+        import json
+        from waysnip.constants import META_KEY_ANNOTATIONS, META_KEY_ORIGINAL
+        if annotations:
+            image.setText(META_KEY_ANNOTATIONS, json.dumps(annotations))
+        if original and self._config.save.mode == "annotated":
+            from waysnip.save import _pixmap_to_base64
+            image.setText(META_KEY_ORIGINAL, _pixmap_to_base64(original))
+        image.save(path, "PNG")
+
         self._save_path = path
         self._saved = True
         self.image_saved.emit(path)
-        self._status_bar.showMessage(f"Saved to {path}", 3000)
+
+        from waysnip.capture.clipboard import ClipboardManager
+        ClipboardManager.copy_image_from_pixmap(flattened)
+
+        self._status_bar.showMessage(f"Saved to {_Path(path).name}", 3000)
 
     # --- Status bar ---
 
