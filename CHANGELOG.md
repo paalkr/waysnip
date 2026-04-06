@@ -3,6 +3,24 @@
 All notable changes to WaySnip will be documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.2.0] - 2026-04-06
+
+### Fixed
+- Region selector now covers the GNOME top panel and dock (switched from constrained single window to per-screen fullscreen overlays)
+- Editor zoom status bar updates in real time when zooming with Ctrl+scroll
+- Initial fit-to-view is more reliable (deferred until layout is complete)
+
+### Improved
+- Editor window sizes itself to fit the image at 100% when possible, instead of a fixed 1200x800
+- Small snippets open at 100% zoom instead of being upscaled to fill the window
+- Image stays fitted when resizing the editor window (until you manually zoom)
+- Smoother antialiasing when viewing images zoomed out (SmoothTransformation on background)
+- Pressing PrintScreen while the selector is open cancels and restarts with a fresh capture
+
+### Added
+- Ctrl+1 shortcut for actual size (100%) zoom
+- Ctrl+0 shortcut for fit-to-window zoom
+
 ## [0.1.0] - 2026-04-06
 
 ### Added
