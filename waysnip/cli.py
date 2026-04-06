@@ -26,6 +26,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("gallery", help="Open the screenshot gallery")
     sub.add_parser("tray", help="Start in system tray (no capture)")
     sub.add_parser("setup", help="Install keybindings and autostart")
+    sub.add_parser("uninstall", help="Remove keybindings and autostart")
 
     config_parser = sub.add_parser("config", help="Open settings GUI")
     config_parser.add_argument(
@@ -59,6 +60,10 @@ def main() -> None:
         _setup()
         return
 
+    if command == "uninstall":
+        _uninstall()
+        return
+
     # Hand off to the application layer (handles single-instance IPC).
     from waysnip.app import run
 
@@ -68,17 +73,24 @@ def main() -> None:
 def _setup() -> None:
     """Install keybindings and autostart entry."""
     import shutil
+    import sys
     from pathlib import Path
 
-    # Find the waysnip binary
-    waysnip_bin = shutil.which("waysnip")
+    # Find the waysnip binary. Priority:
+    # 1. The actual command that's running right now (sys.argv[0] resolved)
+    # 2. `which waysnip` on PATH (works for pipx, pip --user, system pip)
+    # 3. Development venv fallback
+    running = Path(sys.argv[0]).resolve()
+    if running.exists() and running.name == "waysnip":
+        waysnip_bin = str(running)
+    else:
+        waysnip_bin = shutil.which("waysnip")
     if not waysnip_bin:
-        # Try the venv
         venv_bin = Path(__file__).parent.parent / ".venv" / "bin" / "waysnip"
         if venv_bin.exists():
             waysnip_bin = str(venv_bin)
         else:
-            print("Error: waysnip not found in PATH")
+            print("Error: waysnip not found in PATH or venv")
             return
 
     # Create a wrapper script that preserves the environment GNOME needs
@@ -119,12 +131,31 @@ Hidden=false
     # Install keybindings using the wrapper
     _setup_keybindings(str(wrapper))
 
+    # Restart gsd-media-keys so it picks up the new keybindings immediately
+    _restart_media_keys()
+
     print()
     print("Setup complete. WaySnip will:")
     print("  - Start in system tray on login")
     print("  - PrintScreen → region capture")
     print("  - Ctrl+PrintScreen → fullscreen capture")
     print(f"  - Using: {waysnip_bin}")
+
+
+def _restart_media_keys() -> None:
+    """Restart GNOME's media keys daemon to pick up new keybindings."""
+    try:
+        subprocess.run(["killall", "gsd-media-keys"], capture_output=True)
+        import time
+        time.sleep(1)
+        subprocess.Popen(
+            ["/usr/libexec/gsd-media-keys"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        print("Media keys daemon restarted")
+    except Exception:
+        print("Note: restart gsd-media-keys manually or log out/in for keybindings to take effect")
 
 
 def _setup_keybindings(waysnip_bin: str) -> None:
@@ -170,3 +201,59 @@ def _setup_keybindings(waysnip_bin: str) -> None:
     gsettings("set", base, "binding", "<Ctrl>Print")
 
     print("Keybindings installed")
+
+
+def _uninstall() -> None:
+    """Remove keybindings, autostart, and wrapper."""
+    from pathlib import Path
+
+    # Remove autostart
+    autostart_file = Path.home() / ".config" / "autostart" / "waysnip.desktop"
+    if autostart_file.exists():
+        autostart_file.unlink()
+        print(f"Removed: {autostart_file}")
+
+    # Remove wrapper
+    wrapper = Path.home() / ".local" / "bin" / "waysnip-launch"
+    if wrapper.exists():
+        wrapper.unlink()
+        print(f"Removed: {wrapper}")
+
+    # Restore GNOME default screenshot keys
+    def gsettings(*args):
+        subprocess.run(["gsettings"] + list(args), capture_output=True)
+
+    gsettings("reset", "org.gnome.shell.keybindings", "screenshot")
+    gsettings("reset", "org.gnome.shell.keybindings", "screenshot-window")
+    gsettings("reset", "org.gnome.shell.keybindings", "show-screenshot-ui")
+
+    # Remove our custom keybindings from the list
+    custom_path = "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings"
+    result = subprocess.run(
+        ["gsettings", "get", "org.gnome.settings-daemon.plugins.media-keys", "custom-keybindings"],
+        capture_output=True, text=True,
+    )
+    existing = result.stdout.strip()
+
+    # Filter out waysnip entries
+    import ast
+    try:
+        paths = ast.literal_eval(existing)
+        paths = [p for p in paths if "waysnip" not in p]
+        if paths:
+            new_val = str(paths)
+        else:
+            new_val = "@as []"
+    except Exception:
+        new_val = existing
+
+    gsettings("set", "org.gnome.settings-daemon.plugins.media-keys", "custom-keybindings", new_val)
+
+    # Clear the waysnip binding dconf entries
+    subprocess.run(["dconf", "reset", "-f", f"{custom_path}/waysnip0/"], capture_output=True)
+    subprocess.run(["dconf", "reset", "-f", f"{custom_path}/waysnip1/"], capture_output=True)
+
+    _restart_media_keys()
+
+    print("GNOME default screenshot keys restored")
+    print("Uninstall complete")
