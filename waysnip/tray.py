@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction, QColor, QIcon, QPainter, QPixmap
+from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import QMenu, QSystemTrayIcon
 
 from waysnip.constants import APP_DISPLAY_NAME
@@ -15,36 +14,22 @@ if TYPE_CHECKING:
     from waysnip.config import AppConfig
 
 
-def _make_icon() -> QIcon:
-    """Create a simple camera-ish icon as a placeholder."""
-    size = 64
-    pm = QPixmap(size, size)
-    pm.fill(Qt.GlobalColor.transparent)
-    p = QPainter(pm)
-    p.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-    # Body
-    p.setBrush(QColor("#0078d7"))
-    p.setPen(Qt.PenStyle.NoPen)
-    p.drawRoundedRect(6, 16, 52, 38, 6, 6)
-
-    # Lens
-    p.setBrush(QColor("#e0e0e0"))
-    p.drawEllipse(20, 22, 24, 24)
-    p.setBrush(QColor("#2b2b2b"))
-    p.drawEllipse(26, 28, 12, 12)
-
-    # Flash bump
-    p.setBrush(QColor("#0078d7"))
-    p.drawRoundedRect(22, 10, 20, 10, 3, 3)
-
-    p.end()
-    return QIcon(pm)
+def _make_tray_icon() -> QIcon:
+    """Load a bright symbolic icon suitable for the system tray."""
+    from pathlib import Path
+    icon_path = Path(__file__).parent / "resources" / "icons" / "waysnip-symbolic.svg"
+    if icon_path.exists():
+        return QIcon(str(icon_path))
+    # Fallback to the full color icon
+    icon_path = Path(__file__).parent / "resources" / "icons" / "waysnip.svg"
+    if icon_path.exists():
+        return QIcon(str(icon_path))
+    return QIcon.fromTheme("accessories-screenshot")
 
 
 class TrayIcon(QSystemTrayIcon):
     def __init__(self, app: WaySnipApp) -> None:
-        super().__init__(_make_icon(), parent=None)
+        super().__init__(_make_tray_icon(), parent=None)
         self._app = app
         self._config: AppConfig = app._config  # noqa: SLF001
 

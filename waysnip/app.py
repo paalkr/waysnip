@@ -54,7 +54,9 @@ class WaySnipApp:
     def __init__(self, command: str) -> None:
         self._app = QApplication.instance() or QApplication(sys.argv)
         self._app.setApplicationName(APP_DISPLAY_NAME)
+        self._app.setDesktopFileName("waysnip")
         self._app.setQuitOnLastWindowClosed(False)
+        self._set_app_icon()
 
         self._config = AppConfig.load()
         self._server: QLocalServer | None = None
@@ -259,6 +261,12 @@ class WaySnipApp:
         # Propagate to gallery
         if self._gallery_window is not None:
             self._gallery_window._config = self._config
+
+    def _set_app_icon(self) -> None:
+        from PyQt6.QtGui import QIcon
+        icon_path = Path(__file__).parent / "resources" / "icons" / "waysnip.svg"
+        if icon_path.exists():
+            self._app.setWindowIcon(QIcon(str(icon_path)))
 
     def _load_stylesheet(self) -> None:
         qss_path = Path(__file__).parent / "resources" / "style.qss"

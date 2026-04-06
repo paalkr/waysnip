@@ -110,6 +110,15 @@ exec {waysnip_bin} "$@"
     wrapper.chmod(0o755)
     print(f"Launcher installed: {wrapper}")
 
+    # Install app icon
+    icon_src = Path(__file__).parent / "resources" / "icons" / "waysnip.svg"
+    if icon_src.exists():
+        icon_dir = Path.home() / ".local" / "share" / "icons" / "hicolor" / "scalable" / "apps"
+        icon_dir.mkdir(parents=True, exist_ok=True)
+        import shutil as _shutil
+        _shutil.copy2(icon_src, icon_dir / "waysnip.svg")
+        print(f"Icon installed: {icon_dir / 'waysnip.svg'}")
+
     # Install autostart desktop entry
     autostart_dir = Path.home() / ".config" / "autostart"
     autostart_dir.mkdir(parents=True, exist_ok=True)
@@ -137,7 +146,7 @@ Hidden=false
 Name=WaySnip
 Comment=Screenshot and annotation tool for Wayland
 Exec={wrapper} tray
-Icon=accessories-screenshot
+Icon=waysnip
 Terminal=false
 Type=Application
 Categories=Graphics;Utility;
@@ -236,6 +245,12 @@ def _uninstall() -> None:
     if app_desktop.exists():
         app_desktop.unlink()
         print(f"Removed: {app_desktop}")
+
+    # Remove icon
+    icon_file = Path.home() / ".local" / "share" / "icons" / "hicolor" / "scalable" / "apps" / "waysnip.svg"
+    if icon_file.exists():
+        icon_file.unlink()
+        print(f"Removed: {icon_file}")
 
     # Remove wrapper
     wrapper = Path.home() / ".local" / "bin" / "waysnip-launch"
