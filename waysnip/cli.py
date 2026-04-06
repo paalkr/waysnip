@@ -128,6 +128,24 @@ Hidden=false
     autostart_file.write_text(desktop_content)
     print(f"Autostart installed: {autostart_file}")
 
+    # Install application launcher entry
+    apps_dir = Path.home() / ".local" / "share" / "applications"
+    apps_dir.mkdir(parents=True, exist_ok=True)
+    app_desktop = apps_dir / "waysnip.desktop"
+
+    app_content = f"""[Desktop Entry]
+Name=WaySnip
+Comment=Screenshot and annotation tool for Wayland
+Exec={wrapper} tray
+Icon=accessories-screenshot
+Terminal=false
+Type=Application
+Categories=Graphics;Utility;
+Keywords=screenshot;snip;capture;annotate;
+"""
+    app_desktop.write_text(app_content)
+    print(f"App launcher installed: {app_desktop}")
+
     # Install keybindings using the wrapper
     _setup_keybindings(str(wrapper))
 
@@ -212,6 +230,12 @@ def _uninstall() -> None:
     if autostart_file.exists():
         autostart_file.unlink()
         print(f"Removed: {autostart_file}")
+
+    # Remove app launcher
+    app_desktop = Path.home() / ".local" / "share" / "applications" / "waysnip.desktop"
+    if app_desktop.exists():
+        app_desktop.unlink()
+        print(f"Removed: {app_desktop}")
 
     # Remove wrapper
     wrapper = Path.home() / ".local" / "bin" / "waysnip-launch"
