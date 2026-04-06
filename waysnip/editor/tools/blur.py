@@ -66,6 +66,13 @@ class BlurItem(BaseAnnotationItem):
         margin = HANDLE_HALF
         return self._rect.adjusted(-margin, -margin, margin, margin)
 
+    def shape(self):
+        """Return the item shape for hit-testing (mouse clicks)."""
+        from PyQt6.QtGui import QPainterPath
+        path = QPainterPath()
+        path.addRect(self._rect)
+        return path
+
     def _invalidate_cache(self) -> None:
         self._cached_pixmap = None
         self._cache_rect = None
