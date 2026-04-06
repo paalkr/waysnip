@@ -227,6 +227,12 @@ def _uninstall() -> None:
     gsettings("reset", "org.gnome.shell.keybindings", "screenshot-window")
     gsettings("reset", "org.gnome.shell.keybindings", "show-screenshot-ui")
 
+    # Force GNOME Shell to re-grab the restored keybindings by toggling
+    import time
+    gsettings("set", "org.gnome.shell.keybindings", "show-screenshot-ui", "[]")
+    time.sleep(0.3)
+    gsettings("reset", "org.gnome.shell.keybindings", "show-screenshot-ui")
+
     # Remove our custom keybindings from the list
     custom_path = "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings"
     result = subprocess.run(
