@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from PyQt6.QtCore import QByteArray
+from PyQt6.QtGui import QPixmap
 from PyQt6.QtNetwork import QLocalServer, QLocalSocket
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
@@ -18,21 +19,11 @@ from waysnip.constants import APP_DISPLAY_NAME, SOCKET_NAME_TEMPLATE
 # Optional imports for modules built by other agents.  Stubs are used when
 # the real modules are not yet available.
 # ---------------------------------------------------------------------------
-try:
-    from waysnip.capture.screenshot import capture_fullscreen, capture_interactive  # type: ignore[import-untyped]
-except ImportError:
-    capture_fullscreen = None  # type: ignore[assignment]
-    capture_interactive = None  # type: ignore[assignment]
-
-try:
-    from waysnip.capture.region_selector import RegionSelector  # type: ignore[import-untyped]
-except ImportError:
-    RegionSelector = None  # type: ignore[assignment]
-
-try:
-    from waysnip.editor.window import EditorWindow  # type: ignore[import-untyped]
-except ImportError:
-    EditorWindow = None  # type: ignore[assignment]
+from waysnip.capture.portal import capture_fullscreen, capture_interactive
+from waysnip.capture.region_selector import RegionSelector
+from waysnip.capture.clipboard import ClipboardManager
+from waysnip.editor.editor_window import EditorWindow
+from waysnip.save import save_screenshot
 
 
 def _socket_name() -> str:
@@ -135,12 +126,12 @@ class WaySnipApp:
     # ---- Capture orchestration ---------------------------------------------
 
     def do_capture_region(self) -> None:
-        if capture_fullscreen is None or RegionSelector is None:
-            self._not_integrated("Region capture")
+        show_cursor = self._config.capture.show_cursor
+        path = capture_fullscreen(show_cursor=show_cursor)
+        if path is None:
             return
-
-        pixmap = capture_fullscreen()
-        if pixmap is None or pixmap.isNull():
+        pixmap = QPixmap(str(path))
+        if pixmap.isNull():
             return
 
         def _on_region_selected(cropped):
@@ -154,23 +145,22 @@ class WaySnipApp:
         self._region_selector.show()
 
     def do_capture_window(self) -> None:
-        if capture_interactive is None:
-            self._not_integrated("Window capture")
+        path = capture_interactive()
+        if path is None:
             return
-
-        pixmap = capture_interactive()
-        if pixmap is None or pixmap.isNull():
+        pixmap = QPixmap(str(path))
+        if pixmap.isNull():
             return
         self._copy_to_clipboard(pixmap)
         self._post_capture(pixmap)
 
     def do_capture_fullscreen(self) -> None:
-        if capture_fullscreen is None:
-            self._not_integrated("Fullscreen capture")
+        show_cursor = self._config.capture.show_cursor
+        path = capture_fullscreen(show_cursor=show_cursor)
+        if path is None:
             return
-
-        pixmap = capture_fullscreen()
-        if pixmap is None or pixmap.isNull():
+        pixmap = QPixmap(str(path))
+        if pixmap.isNull():
             return
         self._copy_to_clipboard(pixmap)
         self._post_capture(pixmap)
@@ -216,17 +206,13 @@ class WaySnipApp:
         win = EditorWindow(pixmap, self._config)
         win.show()
 
-    def _save_pixmap(self, pixmap) -> None:
-        from datetime import datetime
-
-        save_dir = self._config.get_save_directory()
-        filename = datetime.now().strftime(self._config.save.pattern)
-        path = save_dir / filename
-        pixmap.save(str(path), "PNG")
+    def _save_pixmap(self, pixmap, annotations=None, original_pixmap=None) -> None:
+        path = save_screenshot(pixmap, annotations or [], original_pixmap, self._config)
+        return path
 
     @staticmethod
     def _copy_to_clipboard(pixmap) -> None:
-        QApplication.clipboard().setPixmap(pixmap)
+        ClipboardManager.copy_image_from_pixmap(pixmap)
 
     def _on_config_saved(self) -> None:
         self._config = AppConfig.load()
@@ -238,13 +224,6 @@ class WaySnipApp:
         if qss_path.exists():
             self._app.setStyleSheet(qss_path.read_text())
 
-    @staticmethod
-    def _not_integrated(feature: str) -> None:
-        QMessageBox.information(
-            None,
-            APP_DISPLAY_NAME,
-            f"{feature} is not yet integrated.",
-        )
 
 
 # ---------------------------------------------------------------------------

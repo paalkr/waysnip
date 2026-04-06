@@ -6,3 +6,4 @@ build/
 .venv/
 *.swp
 *.swo
+.claude/

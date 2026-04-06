@@ -1,8 +1,4 @@
-"""Tests for waysnip save/load functionality.
-
-These tests define the contract for save.py. They will fail until the
-capture agent delivers the implementation.
-"""
+"""Tests for waysnip save/load functionality."""
 
 from __future__ import annotations
 
@@ -11,83 +7,73 @@ from pathlib import Path
 
 import pytest
 
-# save.py does not exist yet — skip the entire module if import fails.
-try:
-    from waysnip.save import (
-        save_screenshot,
-        load_annotations,
-        flatten_image,
-        save_flattened_copy,
-    )
-
-    HAS_SAVE_MODULE = True
-except ImportError:
-    HAS_SAVE_MODULE = False
-
-pytestmark = pytest.mark.skipif(
-    not HAS_SAVE_MODULE, reason="waysnip.save not yet implemented"
+from waysnip.save import (
+    save_screenshot,
+    load_annotations,
+    flatten_image,
+    save_flattened_copy,
 )
+from waysnip.config import AppConfig
+from waysnip.constants import META_KEY_ANNOTATIONS
+
+
+@pytest.fixture
+def save_config(tmp_path):
+    """Create an AppConfig pointing to a temp directory."""
+    config = AppConfig()
+    config.save.directory = str(tmp_path)
+    config.save.pattern = "Screenshot_%Y-%m-%d_%H-%M-%S.png"
+    config.save.mode = "annotated"
+    return config
 
 
 class TestSaveScreenshot:
-    def test_creates_file(self, tmp_path, sample_pixmap):
-        path = save_screenshot(sample_pixmap, directory=tmp_path)
+    def test_creates_file(self, tmp_path, sample_pixmap, save_config):
+        path = save_screenshot(sample_pixmap, [], None, save_config)
         assert path.exists()
         assert path.suffix == ".png"
 
-    def test_filename_pattern(self, tmp_path, sample_pixmap):
-        path = save_screenshot(sample_pixmap, directory=tmp_path)
-        # Should match Screenshot_YYYY-MM-DD_HH-MM-SS.png pattern
+    def test_filename_pattern(self, tmp_path, sample_pixmap, save_config):
+        path = save_screenshot(sample_pixmap, [], None, save_config)
         assert path.name.startswith("Screenshot_")
 
-    def test_embeds_metadata(self, tmp_path, sample_pixmap):
+    def test_embeds_metadata(self, tmp_path, sample_pixmap, save_config):
         annotations = [{"type": "rectangle", "x": 10, "y": 20}]
-        path = save_screenshot(
-            sample_pixmap, directory=tmp_path, annotations=annotations
-        )
-        loaded = load_annotations(path)
-        assert loaded is not None
+        path = save_screenshot(sample_pixmap, annotations, sample_pixmap, save_config)
+        _orig, loaded = load_annotations(path)
         assert len(loaded) == 1
         assert loaded[0]["type"] == "rectangle"
 
 
 class TestLoadAnnotations:
-    def test_returns_none_for_plain_png(self, tmp_path, sample_pixmap):
+    def test_returns_empty_for_plain_png(self, tmp_path, sample_pixmap):
         path = tmp_path / "plain.png"
         sample_pixmap.save(str(path), "PNG")
-        result = load_annotations(path)
-        assert result is None
+        original, annotations = load_annotations(path)
+        assert original is None
+        assert annotations == []
 
-    def test_round_trip(self, tmp_path, sample_pixmap):
+    def test_round_trip(self, tmp_path, sample_pixmap, save_config):
         annotations = [
             {"type": "arrow", "x": 0, "y": 0, "pen_width": 3},
             {"type": "text", "x": 50, "y": 50, "content": "hello"},
         ]
-        path = save_screenshot(
-            sample_pixmap, directory=tmp_path, annotations=annotations
-        )
-        loaded = load_annotations(path)
+        path = save_screenshot(sample_pixmap, annotations, sample_pixmap, save_config)
+        _orig, loaded = load_annotations(path)
         assert loaded == annotations
 
 
 class TestFlatten:
-    def test_flatten_strips_metadata(self, tmp_path, sample_pixmap):
+    def test_flatten_strips_metadata(self, tmp_path, sample_pixmap, save_config):
         annotations = [{"type": "rectangle", "x": 0, "y": 0}]
-        path = save_screenshot(
-            sample_pixmap, directory=tmp_path, annotations=annotations
-        )
-        flattened = flatten_image(path)
-        assert flattened is not None
-        # Save flattened and check no annotations
-        flat_path = tmp_path / "flat.png"
-        flattened.save(str(flat_path), "PNG")
-        assert load_annotations(flat_path) is None
+        path = save_screenshot(sample_pixmap, annotations, sample_pixmap, save_config)
+        flatten_image(path)
+        _orig, loaded = load_annotations(path)
+        assert loaded == []
 
-    def test_save_flattened_copy(self, tmp_path, sample_pixmap):
+    def test_save_flattened_copy(self, tmp_path, sample_pixmap, save_config):
         annotations = [{"type": "rectangle", "x": 0, "y": 0}]
-        path = save_screenshot(
-            sample_pixmap, directory=tmp_path, annotations=annotations
-        )
+        path = save_screenshot(sample_pixmap, annotations, sample_pixmap, save_config)
         flat_path = save_flattened_copy(path)
         assert flat_path.exists()
         assert "_flat" in flat_path.stem
