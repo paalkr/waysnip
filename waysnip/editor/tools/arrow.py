@@ -125,6 +125,7 @@ class ArrowTool(BaseTool):
         scene.clearSelection()
         self._start_pos = event.scenePos()
         self._current_item = ArrowItem()
+        self._current_item.apply_drawing_properties(scene.drawing_properties)
         self._current_item.setPos(self._start_pos)
         self._current_item.set_line(QPointF(0, 0), QPointF(0, 0))
         scene.addItem(self._current_item)

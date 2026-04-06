@@ -210,6 +210,7 @@ class TextTool(BaseTool):
 
         # Create new text item
         item = TextItem()
+        item.apply_drawing_properties(scene.drawing_properties)
         item.setPos(pos)
         item._ensure_text_item()
 

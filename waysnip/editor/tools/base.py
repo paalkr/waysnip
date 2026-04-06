@@ -189,6 +189,17 @@ class BaseAnnotationItem(QGraphicsItem):
 
     # --- Pen/brush helpers ---
 
+    def apply_drawing_properties(self, props: dict) -> None:
+        """Apply properties from scene.drawing_properties to this item."""
+        if "pen_color" in props:
+            self._pen_color = QColor(props["pen_color"])
+        if "fill_color" in props:
+            self._fill_color = QColor(props["fill_color"])
+        if "pen_width" in props:
+            self._pen_width = max(1, props["pen_width"])
+        if "item_opacity" in props:
+            self.item_opacity = props["item_opacity"]
+
     def make_pen(self) -> QPen:
         """Create a QPen from the current pen color and width."""
         pen = QPen(self._pen_color, self._pen_width)

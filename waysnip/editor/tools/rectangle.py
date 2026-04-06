@@ -99,6 +99,7 @@ class RectangleTool(BaseTool):
         scene.clearSelection()
         self._start_pos = event.scenePos()
         self._current_item = RectangleItem()
+        self._current_item.apply_drawing_properties(scene.drawing_properties)
         self._current_item.setPos(self._start_pos)
         self._current_item.set_rect(QRectF(0, 0, 0, 0))
         scene.addItem(self._current_item)

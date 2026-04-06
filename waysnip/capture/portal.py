@@ -1,182 +1,137 @@
-"""xdg-desktop-portal Screenshot integration via D-Bus."""
+"""Screen capture backends for Wayland.
+
+On GNOME: uses gnome-screenshot for fast silent capture, falls back to
+xdg-desktop-portal interactive mode for window selection.
+
+On wlroots compositors: could use grim (not yet implemented).
+"""
 
 from __future__ import annotations
 
-import uuid
+import subprocess
+import tempfile
 from pathlib import Path
-from urllib.parse import urlparse, unquote
-
-from PyQt6.QtCore import QEventLoop, QTimer, QVariant
-from PyQt6.QtDBus import (
-    QDBusConnection,
-    QDBusInterface,
-    QDBusMessage,
-    QDBusVariant,
-)
 
 
-_PORTAL_SERVICE = "org.freedesktop.portal.Desktop"
-_PORTAL_PATH = "/org/freedesktop/portal/desktop"
-_PORTAL_IFACE = "org.freedesktop.portal.Screenshot"
-_REQUEST_IFACE = "org.freedesktop.portal.Request"
+def capture_fullscreen(show_cursor: bool = False) -> Path | None:
+    """Take a full-screen screenshot silently.
 
-_TIMEOUT_MS = 10_000
-
-
-def _unique_token() -> str:
-    """Return a token safe for a D-Bus object path segment."""
-    return "waysnip_" + uuid.uuid4().hex[:12]
-
-
-def _sender_name() -> str:
-    """Get the unique bus name mangled for object-path use.
-
-    The portal builds the request path from the sender's unique name with
-    dots replaced by underscores and the leading colon stripped.
+    Uses gnome-screenshot which works on GNOME Wayland without portal
+    permission dialogs.
     """
-    bus = QDBusConnection.sessionBus()
-    name = bus.baseService()  # e.g. ":1.234"
-    return name.lstrip(":").replace(".", "_")
+    tmp = tempfile.NamedTemporaryFile(suffix=".png", prefix="waysnip_", delete=False)
+    tmp.close()
+    path = Path(tmp.name)
+
+    cmd = ["gnome-screenshot", "-f", str(path)]
+    if show_cursor:
+        cmd.append("--include-pointer")
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, timeout=10)
+        if result.returncode != 0:
+            print(f"gnome-screenshot failed: {result.stderr.decode()}")
+            return None
+        if not path.exists() or path.stat().st_size == 0:
+            print("gnome-screenshot produced no output")
+            return None
+        return path
+    except FileNotFoundError:
+        print("gnome-screenshot not found, falling back to portal")
+        return _capture_via_portal(interactive=False)
+    except subprocess.TimeoutExpired:
+        print("gnome-screenshot timed out")
+        return None
 
 
-def _uri_to_path(uri: str) -> Path:
-    """Convert a file:// URI to a local Path."""
-    parsed = urlparse(uri)
-    return Path(unquote(parsed.path))
-
-
-def _call_screenshot(interactive: bool, show_cursor: bool = False) -> Path:
-    """Perform a portal Screenshot call and wait for the async response.
-
-    Parameters
-    ----------
-    interactive:
-        If True the portal shows its own picker UI. If False a full-screen
-        capture is taken immediately.
-    show_cursor:
-        Whether to include the mouse cursor in the capture (non-interactive
-        mode only; the portal may ignore this in interactive mode).
-
-    Returns
-    -------
-    Path to the temporary PNG written by the portal.
-
-    Raises
-    ------
-    RuntimeError
-        On timeout, cancellation, or D-Bus error.
-    """
-    bus = QDBusConnection.sessionBus()
-
-    token = _unique_token()
-    request_path = f"/org/freedesktop/portal/desktop/request/{_sender_name()}/{token}"
-
-    # Prepare to listen for the Response signal *before* calling Screenshot so
-    # we never miss a fast reply.
-    loop = QEventLoop()
-    result_uri: list[str] = []
-    error_msg: list[str] = []
-
-    def _on_response(msg: QDBusMessage) -> None:
-        args = msg.arguments()
-        if len(args) < 2:
-            error_msg.append("Unexpected portal response (missing arguments)")
-            loop.quit()
-            return
-        response_code = args[0]
-        results = args[1]
-        if response_code != 0:
-            error_msg.append(
-                f"Portal returned non-success response code {response_code}"
-            )
-            loop.quit()
-            return
-        uri = results.get("uri", "")
-        if not uri:
-            error_msg.append("Portal response missing 'uri' field")
-            loop.quit()
-            return
-        result_uri.append(uri)
-        loop.quit()
-
-    connected = bus.connect(
-        _PORTAL_SERVICE,
-        request_path,
-        _REQUEST_IFACE,
-        "Response",
-        _on_response,
-    )
-    if not connected:
-        raise RuntimeError(
-            f"Failed to connect to portal Response signal on {request_path}"
-        )
-
-    # Build the options dict.
-    options: dict[str, QDBusVariant] = {
-        "handle_token": QDBusVariant(QVariant(token)),
-        "interactive": QDBusVariant(QVariant(interactive)),
-    }
-    if not interactive:
-        options["modal"] = QDBusVariant(QVariant(False))
-
-    iface = QDBusInterface(
-        _PORTAL_SERVICE,
-        _PORTAL_PATH,
-        _PORTAL_IFACE,
-        bus,
-    )
-    if not iface.isValid():
-        raise RuntimeError(
-            "Could not create D-Bus interface for xdg-desktop-portal. "
-            "Is the portal service running?"
-        )
-
-    reply: QDBusMessage = iface.call("Screenshot", "", options)
-
-    if reply.type() == QDBusMessage.MessageType.ErrorMessage:
-        raise RuntimeError(f"Portal Screenshot call failed: {reply.errorMessage()}")
-
-    # Wait for the Response signal (or timeout).
-    QTimer.singleShot(_TIMEOUT_MS, loop.quit)
-    loop.exec()
-
-    # Disconnect our handler.
-    bus.disconnect(
-        _PORTAL_SERVICE,
-        request_path,
-        _REQUEST_IFACE,
-        "Response",
-        _on_response,
-    )
-
-    if error_msg:
-        raise RuntimeError(error_msg[0])
-    if not result_uri:
-        raise RuntimeError("Portal screenshot timed out")
-
-    return _uri_to_path(result_uri[0])
-
-
-def capture_fullscreen(show_cursor: bool = False) -> Path:
-    """Take a non-interactive full-screen screenshot via the portal.
-
-    Parameters
-    ----------
-    show_cursor:
-        Include the mouse cursor in the capture if the portal supports it.
-
-    Returns
-    -------
-    Path to the temporary PNG file written by the portal.
-    """
-    return _call_screenshot(interactive=False, show_cursor=show_cursor)
-
-
-def capture_interactive() -> Path:
+def capture_interactive() -> Path | None:
     """Open the portal's interactive screenshot picker (GNOME's own UI).
 
-    Returns
-    -------
-    Path to the temporary PNG file written by the portal.
+    This shows GNOME's built-in screenshot tool where the user can select
+    a region, window, or full screen.
     """
-    return _call_screenshot(interactive=True)
+    # For interactive mode, the portal is the right approach since GNOME
+    # shows its own polished UI.
+    return _capture_via_portal(interactive=True)
+
+
+def _capture_via_portal(interactive: bool) -> Path | None:
+    """Use gdbus to call the xdg-desktop-portal Screenshot method.
+
+    We use gdbus subprocess instead of Qt's D-Bus bindings because
+    PyQt6's QDBusConnection.connect() has issues with portal response
+    signals on GNOME.
+    """
+
+    interactive_str = "true" if interactive else "false"
+    cmd = [
+        "gdbus", "call", "--session",
+        "--dest", "org.freedesktop.portal.Desktop",
+        "--object-path", "/org/freedesktop/portal/desktop",
+        "--method", "org.freedesktop.portal.Screenshot.Screenshot",
+        "",
+        f'{{"interactive": <{interactive_str}>}}',
+    ]
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        if result.returncode != 0:
+            print(f"Portal call failed: {result.stderr}")
+            return None
+    except subprocess.TimeoutExpired:
+        print("Portal call timed out")
+        return None
+
+    # The gdbus call returns immediately with a request path.
+    # The actual screenshot happens asynchronously via GNOME's UI.
+    # We need to listen for the response signal.
+    # Use gdbus monitor for this.
+    try:
+        monitor = subprocess.Popen(
+            [
+                "dbus-monitor", "--session",
+                "type='signal',interface='org.freedesktop.portal.Request',member='Response'",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        # Wait for the user to complete the screenshot in GNOME's UI
+        # (up to 60 seconds for interactive mode)
+        timeout = 60 if interactive else 15
+        output_lines = []
+        import select
+        import time
+
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            ready, _, _ = select.select([monitor.stdout], [], [], min(remaining, 0.5))
+            if ready:
+                line = monitor.stdout.readline().decode("utf-8", errors="replace")
+                if not line:
+                    break
+                output_lines.append(line)
+                # Look for the uri in the response
+                if "string" in line and "file://" in line:
+                    monitor.kill()
+                    uri = line.strip().split('"')[1] if '"' in line else ""
+                    if uri.startswith("file://"):
+                        from urllib.parse import urlparse, unquote
+                        return Path(unquote(urlparse(uri).path))
+
+                # Check for response code indicating failure
+                if "uint32 1" in line or "uint32 2" in line:
+                    monitor.kill()
+                    print("Portal screenshot was cancelled or denied")
+                    return None
+
+        monitor.kill()
+        monitor.wait(timeout=2)
+        print("Portal interactive screenshot timed out")
+        return None
+
+    except Exception as e:
+        print(f"Portal monitor error: {e}")
+        return None

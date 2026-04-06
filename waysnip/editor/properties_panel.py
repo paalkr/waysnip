@@ -204,14 +204,33 @@ class PropertiesPanel(QDockWidget):
         layout.addWidget(self._font_group)
         self._font_group.setVisible(False)
 
+        # --- Pixelation (shown only for blur tool) ---
+        self._blur_group = QGroupBox("Pixelation")
+        blur_layout = QVBoxLayout(self._blur_group)
+
+        block_row = QHBoxLayout()
+        block_row.addWidget(QLabel("Block size:"))
+        self._block_size_spin = QSpinBox()
+        self._block_size_spin.setRange(2, 50)
+        self._block_size_spin.setValue(10)
+        self._block_size_spin.setSuffix(" px")
+        self._block_size_spin.setToolTip("Larger = more pixelated")
+        self._block_size_spin.valueChanged.connect(self._on_block_size_changed)
+        block_row.addWidget(self._block_size_spin)
+        blur_layout.addLayout(block_row)
+
+        layout.addWidget(self._blur_group)
+        self._blur_group.setVisible(False)
+
         layout.addStretch()
         self.setWidget(container)
 
     # --- Public API ---
 
     def set_tool_name(self, name: str) -> None:
-        """Show/hide font controls based on the active tool."""
+        """Show/hide tool-specific controls based on the active tool."""
         self._font_group.setVisible(name == "text")
+        self._blur_group.setVisible(name == "blur")
 
     def set_pen_color(self, color: QColor) -> None:
         self._pen_color_btn.color = color
@@ -264,3 +283,6 @@ class PropertiesPanel(QDockWidget):
 
     def _on_font_size_changed(self, value: int) -> None:
         self.properties_changed.emit({"font_size": value})
+
+    def _on_block_size_changed(self, value: int) -> None:
+        self.properties_changed.emit({"block_size": value})

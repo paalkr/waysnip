@@ -77,12 +77,12 @@ class WaySnipApp:
             self._tray = TrayIcon(self)
             self._tray.show()
 
-        self._dispatch(self._pending_command)
+        # Keep app alive until we explicitly allow quitting.
+        # Without tray, the app should quit when the last editor/gallery
+        # window closes — but NOT when the region selector closes.
+        self._app.setQuitOnLastWindowClosed(False)
 
-        # If tray is disabled and no windows are visible, quit after the
-        # workflow finishes.  With tray, the app keeps running.
-        if not self._config.tray.enabled:
-            self._app.setQuitOnLastWindowClosed(True)
+        self._dispatch(self._pending_command)
 
         return self._app.exec()
 
@@ -140,8 +140,13 @@ class WaySnipApp:
             self._copy_to_clipboard(cropped)
             self._post_capture(cropped)
 
+        def _on_cancelled():
+            if not self._config.tray.enabled:
+                self._app.quit()
+
         self._region_selector = RegionSelector(pixmap)
         self._region_selector.region_selected.connect(_on_region_selected)
+        self._region_selector.cancelled.connect(_on_cancelled)
         self._region_selector.show()
 
     def do_capture_window(self) -> None:
@@ -200,11 +205,22 @@ class WaySnipApp:
         # "clipboard" — already copied above, nothing more to do.
 
     def _open_editor(self, pixmap) -> None:
-        if EditorWindow is None:
-            self._not_integrated("Editor")
-            return
         win = EditorWindow(pixmap, self._config)
+        # Keep a reference so the window isn't garbage collected
+        if not hasattr(self, "_editor_windows"):
+            self._editor_windows = []
+        self._editor_windows.append(win)
+        def _on_editor_destroyed():
+            if win in self._editor_windows:
+                self._editor_windows.remove(win)
+            # If no tray and no more windows, quit
+            if not self._config.tray.enabled and not self._editor_windows:
+                self._app.quit()
+
+        win.destroyed.connect(_on_editor_destroyed)
         win.show()
+        win.raise_()
+        win.activateWindow()
 
     def _save_pixmap(self, pixmap, annotations=None, original_pixmap=None) -> None:
         path = save_screenshot(pixmap, annotations or [], original_pixmap, self._config)

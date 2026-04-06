@@ -92,6 +92,7 @@ class HighlightTool(BaseTool):
     def mouse_press(self, scene: QGraphicsScene, event: QGraphicsSceneMouseEvent) -> None:
         scene.clearSelection()
         self._current_item = HighlightItem()
+        self._current_item.apply_drawing_properties(scene.drawing_properties)
         pos = event.scenePos()
         self._current_item.setPos(pos)
         self._current_item.add_point(QPointF(0, 0))

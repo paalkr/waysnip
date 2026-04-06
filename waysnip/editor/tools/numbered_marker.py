@@ -157,6 +157,7 @@ class NumberedMarkerTool(BaseTool):
         scene.clearSelection()
         self._counter += 1
         item = NumberedMarkerItem()
+        item.apply_drawing_properties(scene.drawing_properties)
         item.number = self._counter
         item.setPos(event.scenePos())
 

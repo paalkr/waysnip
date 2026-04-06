@@ -25,6 +25,14 @@ class AnnotationScene(QGraphicsScene):
         self._active_tool: BaseTool | None = None
         self._undo_stack = QUndoStack(self)
 
+        # Current drawing properties — tools read these when creating new items
+        self.drawing_properties: dict[str, Any] = {
+            "pen_color": QColor(255, 0, 0),
+            "fill_color": QColor(0, 0, 0, 0),
+            "pen_width": 3,
+            "item_opacity": 1.0,
+        }
+
     # --- Background ---
 
     def set_background_pixmap(self, pixmap: QPixmap) -> None:

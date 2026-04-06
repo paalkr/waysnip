@@ -78,7 +78,8 @@ class EditorWindow(QMainWindow):
 
         # Toolbar
         self._toolbar = AnnotationToolbar(self)
-        self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self._toolbar)
+        self._toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
+        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self._toolbar)
         self._toolbar.tool_changed.connect(self._on_tool_changed)
 
         # Properties panel
@@ -189,7 +190,11 @@ class EditorWindow(QMainWindow):
     # --- Properties ---
 
     def _on_properties_changed(self, props: dict) -> None:
-        """Apply changed properties to selected items."""
+        """Apply changed properties to selected items and update drawing defaults."""
+        # Update the scene's drawing properties so new items use these values
+        self._scene.drawing_properties.update(props)
+
+        # Also apply to currently selected items
         for item in self._scene.selectedItems():
             if isinstance(item, BaseAnnotationItem):
                 for key, value in props.items():
