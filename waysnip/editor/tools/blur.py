@@ -112,7 +112,6 @@ class BlurItem(BaseAnnotationItem):
 
         # Draw a subtle border when selected
         if self.isSelected():
-            pen = painter.pen()
             from PyQt6.QtGui import QPen
             painter.setPen(QPen(QColor(0, 120, 215), 1, Qt.PenStyle.DashLine))
             painter.setBrush(Qt.BrushStyle.NoBrush)

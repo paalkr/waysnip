@@ -8,7 +8,6 @@ from PyQt6.QtWidgets import (
     QGraphicsScene,
     QGraphicsSceneMouseEvent,
     QGraphicsRectItem,
-    QGraphicsItem,
 )
 
 from waysnip.editor.tools.base import BaseTool, BaseAnnotationItem, ResizeHandle

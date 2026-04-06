@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import Optional
 
 from PyQt6.QtCore import (
     QPoint,
@@ -17,15 +16,11 @@ from PyQt6.QtCore import (
 from PyQt6.QtGui import (
     QBrush,
     QColor,
-    QCursor,
     QFont,
-    QImage,
     QPainter,
     QPainterPath,
     QPen,
     QPixmap,
-    QRegion,
-    QTransform,
 )
 from PyQt6.QtWidgets import QApplication, QWidget
 

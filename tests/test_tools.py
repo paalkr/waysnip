@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from waysnip.constants import TOOL_SHORTCUTS
-from waysnip.editor.tools.base import BaseTool, BaseAnnotationItem, _ITEM_REGISTRY
+from waysnip.editor.tools.base import BaseAnnotationItem, _ITEM_REGISTRY
 from waysnip.editor.tools.rectangle import RectangleTool, RectangleItem
 from waysnip.editor.tools.ellipse import EllipseTool, EllipseItem
 from waysnip.editor.tools.arrow import ArrowTool, ArrowItem

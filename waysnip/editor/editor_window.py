@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
 
-from PyQt6.QtCore import Qt, pyqtSignal, QTimer
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import (
     QAction,
     QCloseEvent,
@@ -17,7 +15,6 @@ from PyQt6.QtGui import (
 from PyQt6.QtWidgets import (
     QFileDialog,
     QMainWindow,
-    QMenuBar,
     QMessageBox,
     QStatusBar,
     QWidget,

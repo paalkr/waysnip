@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from PyQt6.QtCore import Qt, QRectF, QPointF
+from PyQt6.QtCore import Qt, QRectF
 from PyQt6.QtGui import QPainter, QColor, QFont, QPen
 from PyQt6.QtWidgets import (
     QGraphicsScene,

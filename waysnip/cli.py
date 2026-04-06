@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import os
 import subprocess
-import sys
 
 from waysnip.constants import APP_DISPLAY_NAME, APP_VERSION, CONFIG_FILE
 

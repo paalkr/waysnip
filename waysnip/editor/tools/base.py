@@ -6,19 +6,16 @@ must implement. Build agents work against these real classes.
 
 from __future__ import annotations
 
-import json
 from abc import ABC, abstractmethod
 from typing import Any
 
 from PyQt6.QtCore import Qt, QPointF, QRectF
-from PyQt6.QtGui import QColor, QCursor, QPainter, QPen, QBrush, QTransform
+from PyQt6.QtGui import QColor, QCursor, QPen, QBrush
 from PyQt6.QtWidgets import (
     QGraphicsItem,
     QGraphicsRectItem,
     QGraphicsScene,
     QGraphicsSceneMouseEvent,
-    QStyleOptionGraphicsItem,
-    QWidget,
 )
 
 from waysnip.constants import HANDLE_SIZE, HANDLE_HALF

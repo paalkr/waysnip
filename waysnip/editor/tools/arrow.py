@@ -6,7 +6,7 @@ import math
 from typing import Any
 
 from PyQt6.QtCore import Qt, QRectF, QPointF, QLineF
-from PyQt6.QtGui import QPainter, QPainterPath, QPolygonF, QColor
+from PyQt6.QtGui import QPainter, QPolygonF
 from PyQt6.QtWidgets import (
     QGraphicsScene,
     QGraphicsSceneMouseEvent,

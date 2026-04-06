@@ -15,7 +15,6 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QColorDialog,
     QFontComboBox,
-    QFrame,
     QGroupBox,
 )
 

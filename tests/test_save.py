@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
 
 import pytest
 
@@ -14,7 +12,6 @@ from waysnip.save import (
     save_flattened_copy,
 )
 from waysnip.config import AppConfig
-from waysnip.constants import META_KEY_ANNOTATIONS
 
 
 @pytest.fixture

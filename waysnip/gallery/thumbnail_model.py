@@ -43,9 +43,9 @@ class _Item:
 
 
 class ThumbnailModel(QAbstractListModel):
-    def __init__(self, directory: Path, parent=None) -> None:
+    def __init__(self, directory: Path | str, parent=None) -> None:
         super().__init__(parent)
-        self._dir = directory
+        self._dir = Path(directory) if isinstance(directory, str) else directory
         self._items: list[_Item] = []
         self.refresh()
 

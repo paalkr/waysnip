@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from PyQt6.QtCore import QRectF, QPointF
+from PyQt6.QtCore import QRectF
 from PyQt6.QtGui import QColor, QPen, QBrush, QPainter
-from PyQt6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem, QWidget
+from PyQt6.QtWidgets import QStyleOptionGraphicsItem, QWidget
 
 from waysnip.editor.tools.base import (
     BaseAnnotationItem,
     BaseTool,
-    ResizeHandle,
     register_item_type,
     _ITEM_REGISTRY,
 )

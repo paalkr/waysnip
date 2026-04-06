@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import uuid
 from pathlib import Path
 from urllib.parse import urlparse, unquote
@@ -15,7 +14,6 @@ from PyQt6.QtDBus import (
     QDBusVariant,
 )
 
-from waysnip.config import AppConfig
 
 _PORTAL_SERVICE = "org.freedesktop.portal.Desktop"
 _PORTAL_PATH = "/org/freedesktop/portal/desktop"

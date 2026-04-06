@@ -10,7 +10,7 @@ from pathlib import Path
 from PyQt6.QtCore import QByteArray
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtNetwork import QLocalServer, QLocalSocket
-from PyQt6.QtWidgets import QApplication, QMessageBox
+from PyQt6.QtWidgets import QApplication
 
 from waysnip.config import AppConfig
 from waysnip.constants import APP_DISPLAY_NAME, SOCKET_NAME_TEMPLATE

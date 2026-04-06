@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import tomllib
-from pathlib import Path
 
-import pytest
 
-from waysnip.config import AppConfig, CaptureConfig, SaveConfig, EditorConfig
+from waysnip.config import AppConfig
 from waysnip.constants import (
     DEFAULT_FILL_COLOR,
     DEFAULT_FILENAME_PATTERN,
