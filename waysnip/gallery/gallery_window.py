@@ -74,9 +74,13 @@ class GalleryWindow(QMainWindow):
 
     # ---- Actions -----------------------------------------------------------
 
-    def _refresh(self) -> None:
+    def refresh(self) -> None:
+        """Refresh the gallery (public — called by app when editor saves)."""
         self._model.refresh()
         self._update_status()
+
+    def _refresh(self) -> None:
+        self.refresh()
 
     def _open_folder(self) -> None:
         subprocess.Popen(["xdg-open", str(self._save_dir)])

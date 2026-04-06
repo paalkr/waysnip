@@ -221,6 +221,7 @@ class WaySnipApp:
                 self._app.quit()
 
         win.destroyed.connect(_on_editor_destroyed)
+        win.image_saved.connect(self._on_image_saved)
         win.show()
         win.raise_()
         win.activateWindow()
@@ -232,6 +233,11 @@ class WaySnipApp:
     @staticmethod
     def _copy_to_clipboard(pixmap) -> None:
         ClipboardManager.copy_image_from_pixmap(pixmap)
+
+    def _on_image_saved(self, path: str) -> None:
+        """Refresh the gallery when an editor saves."""
+        if self._gallery_window is not None:
+            self._gallery_window.refresh()
 
     def _on_config_saved(self) -> None:
         self._config = AppConfig.load()
