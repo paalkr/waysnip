@@ -29,8 +29,15 @@ jobs:
         run: python -m build
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          # Extract the section for the current tag version from CHANGELOG.md
+          version="${GITHUB_REF_NAME#v}"
+          awk "/^## \[${version}\]/{found=1; next} /^## \[/{if(found) exit} found" CHANGELOG.md > /tmp/release_notes.md
+          cat /tmp/release_notes.md
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
-          generate_release_notes: true
+          body_path: /tmp/release_notes.md
