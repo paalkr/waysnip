@@ -95,6 +95,9 @@ class EditorWindow(QMainWindow):
         self.setStatusBar(self._status_bar)
         self._update_status()
 
+        # Listen for selection changes to update properties panel
+        self._scene.selectionChanged.connect(self._on_selection_changed)
+
         # Activate default tool
         self._on_tool_changed("select")
 
@@ -186,6 +189,35 @@ class EditorWindow(QMainWindow):
             self._canvas.setCursor(cursor)
             self._properties.set_tool_name(name)
             self._update_status()
+
+    # --- Selection ---
+
+    def _on_selection_changed(self) -> None:
+        """Update properties panel to reflect the selected item(s)."""
+        from waysnip.editor.tools.blur import BlurItem
+        from waysnip.editor.tools.text import TextItem
+
+        selected = [
+            item for item in self._scene.selectedItems()
+            if isinstance(item, BaseAnnotationItem)
+        ]
+        if len(selected) == 1:
+            item = selected[0]
+            # Show appropriate controls based on item type
+            is_blur = isinstance(item, BlurItem)
+            is_text = isinstance(item, TextItem)
+            self._properties._blur_group.setVisible(is_blur)
+            self._properties._font_group.setVisible(is_text)
+            self._properties._stroke_group.setVisible(not is_blur)
+            self._properties._color_group.setVisible(not is_blur)
+
+            # Update panel values to match selected item
+            self._properties.set_pen_color(item.pen_color)
+            self._properties.set_fill_color(item.fill_color)
+            self._properties.set_pen_width(item.pen_width)
+            self._properties.set_opacity(item.item_opacity)
+            if is_blur:
+                self._properties._block_size_spin.setValue(item.block_size)
 
     # --- Properties ---
 
