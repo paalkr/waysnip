@@ -81,6 +81,23 @@ def _setup() -> None:
             print("Error: waysnip not found in PATH")
             return
 
+    # Create a wrapper script that preserves the environment GNOME needs
+    wrapper_dir = Path.home() / ".local" / "bin"
+    wrapper_dir.mkdir(parents=True, exist_ok=True)
+    wrapper = wrapper_dir / "waysnip-launch"
+
+    wrapper_content = f"""#!/bin/bash
+# WaySnip launcher — preserves environment for GNOME keybindings
+export XDG_RUNTIME_DIR="${{XDG_RUNTIME_DIR:-/run/user/$(id -u)}}"
+export WAYLAND_DISPLAY="${{WAYLAND_DISPLAY:-wayland-0}}"
+export DISPLAY="${{DISPLAY:-:0}}"
+export DBUS_SESSION_BUS_ADDRESS="${{DBUS_SESSION_BUS_ADDRESS:-unix:path=$XDG_RUNTIME_DIR/bus}}"
+exec {waysnip_bin} "$@"
+"""
+    wrapper.write_text(wrapper_content)
+    wrapper.chmod(0o755)
+    print(f"Launcher installed: {wrapper}")
+
     # Install autostart desktop entry
     autostart_dir = Path.home() / ".config" / "autostart"
     autostart_dir.mkdir(parents=True, exist_ok=True)
@@ -89,7 +106,7 @@ def _setup() -> None:
     desktop_content = f"""[Desktop Entry]
 Name=WaySnip
 Comment=WaySnip screenshot tool (tray)
-Exec={waysnip_bin} tray
+Exec={wrapper} tray
 Icon=waysnip
 Terminal=false
 Type=Application
@@ -99,8 +116,8 @@ Hidden=false
     autostart_file.write_text(desktop_content)
     print(f"Autostart installed: {autostart_file}")
 
-    # Install keybindings via gsettings
-    _setup_keybindings(waysnip_bin)
+    # Install keybindings using the wrapper
+    _setup_keybindings(str(wrapper))
 
     print()
     print("Setup complete. WaySnip will:")
