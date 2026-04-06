@@ -253,6 +253,11 @@ def _uninstall() -> None:
     subprocess.run(["dconf", "reset", "-f", f"{custom_path}/waysnip0/"], capture_output=True)
     subprocess.run(["dconf", "reset", "-f", f"{custom_path}/waysnip1/"], capture_output=True)
 
+    # Kill running waysnip instances
+    subprocess.run(["pkill", "-f", "waysnip tray"], capture_output=True)
+    subprocess.run(["pkill", "-f", "waysnip-launch"], capture_output=True)
+    print("Stopped running WaySnip instances")
+
     _restart_media_keys()
 
     print("GNOME default screenshot keys restored")
