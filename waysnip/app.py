@@ -237,6 +237,14 @@ class WaySnipApp:
         self._config = AppConfig.load()
         if self._tray is not None:
             self._tray.reload_config(self._config)
+        # Propagate to open editor windows
+        if hasattr(self, "_editor_windows"):
+            for win in self._editor_windows:
+                if hasattr(win, "_config"):
+                    win._config = self._config
+        # Propagate to gallery
+        if self._gallery_window is not None:
+            self._gallery_window._config = self._config
 
     def _load_stylesheet(self) -> None:
         qss_path = Path(__file__).parent / "resources" / "style.qss"
