@@ -6,14 +6,32 @@ build-backend = "hatchling.build"
 name = "waysnip"
 version = "0.1.0"
 description = "Lightweight Wayland screenshot and annotation tool"
+readme = "README.md"
+license = "GPL-3.0-only"
 requires-python = ">=3.12"
+authors = [{name = "Pål Kristensen"}]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: X11 Applications :: Qt",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Graphics :: Capture :: Screen Capture",
+]
 dependencies = [
     "PyQt6>=6.6",
     "tomli_w>=1.0",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-qt>=4.0"]
+dev = ["pytest>=8.0", "pytest-qt>=4.0", "ruff>=0.5"]
+docs = ["mkdocs-material>=9.0"]
 
 [project.scripts]
 waysnip = "waysnip.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/paalkr/waysnip"
+Repository = "https://github.com/paalkr/waysnip"
+Issues = "https://github.com/paalkr/waysnip/issues"
+Changelog = "https://github.com/paalkr/waysnip/blob/main/CHANGELOG.md"

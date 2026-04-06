@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1 libegl1 libxkbcommon0 xvfb
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check waysnip/ tests/
+      - name: Test
+        run: xvfb-run python -m pytest tests/ -v
