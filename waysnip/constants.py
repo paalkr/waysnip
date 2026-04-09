@@ -17,10 +17,7 @@ SOCKET_NAME_TEMPLATE = "waysnip-{uid}"
 # Save format
 DEFAULT_FILENAME_PATTERN = "Screenshot_%Y-%m-%d_%H-%M-%S.png"
 
-# Editor defaults
-DEFAULT_PEN_COLOR = "#ff0000"
-DEFAULT_PEN_WIDTH = 3
-DEFAULT_FILL_COLOR = "#00000000"  # transparent
+# Font defaults (used by TextItem deserialization)
 DEFAULT_FONT_FAMILY = "Sans"
 DEFAULT_FONT_SIZE = 16
 

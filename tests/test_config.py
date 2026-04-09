@@ -7,14 +7,9 @@ import tomllib
 
 from waysnip.config import AppConfig
 from waysnip.constants import (
-    DEFAULT_FILL_COLOR,
     DEFAULT_FILENAME_PATTERN,
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_FONT_SIZE,
     DEFAULT_MAGNIFIER_SIZE,
     DEFAULT_MAGNIFIER_ZOOM,
-    DEFAULT_PEN_COLOR,
-    DEFAULT_PEN_WIDTH,
     DEFAULT_SAVE_DIR,
 )
 
@@ -34,11 +29,7 @@ class TestDefaults:
 
     def test_editor_defaults(self):
         cfg = AppConfig()
-        assert cfg.editor.default_pen_color == DEFAULT_PEN_COLOR
-        assert cfg.editor.default_pen_width == DEFAULT_PEN_WIDTH
-        assert cfg.editor.default_fill_color == DEFAULT_FILL_COLOR
-        assert cfg.editor.default_font == DEFAULT_FONT_FAMILY
-        assert cfg.editor.default_font_size == DEFAULT_FONT_SIZE
+        assert cfg.editor.copy_on_save is True
         assert cfg.editor.recent_colors == []
 
     def test_magnifier_defaults(self):
@@ -60,7 +51,7 @@ class TestLoadNoFile:
         default = AppConfig()
         assert cfg.capture.after_capture == default.capture.after_capture
         assert cfg.save.directory == default.save.directory
-        assert cfg.editor.default_pen_color == default.editor.default_pen_color
+        assert cfg.editor.copy_on_save == default.editor.copy_on_save
 
 
 class TestSaveToDisk:
@@ -85,16 +76,14 @@ class TestRoundTrip:
     def test_save_then_load_preserves_values(self, tmp_config_dir):
         cfg = AppConfig()
         cfg.capture.after_capture = "clipboard+save"
-        cfg.editor.default_pen_color = "#00ff00"
-        cfg.editor.default_pen_width = 7
+        cfg.editor.copy_on_save = False
         cfg.magnifier.zoom = 10
         cfg.tray.left_click_action = "fullscreen"
         cfg.save_to_disk()
 
         loaded = AppConfig.load()
         assert loaded.capture.after_capture == "clipboard+save"
-        assert loaded.editor.default_pen_color == "#00ff00"
-        assert loaded.editor.default_pen_width == 7
+        assert loaded.editor.copy_on_save is False
         assert loaded.magnifier.zoom == 10
         assert loaded.tray.left_click_action == "fullscreen"
 
@@ -120,7 +109,7 @@ class TestPartialConfig:
         loaded = AppConfig.load()
         assert loaded.capture.after_capture == "save"
         # Other sections should be defaults
-        assert loaded.editor.default_pen_color == DEFAULT_PEN_COLOR
+        assert loaded.editor.copy_on_save is True
         assert loaded.magnifier.zoom == DEFAULT_MAGNIFIER_ZOOM
 
     def test_unknown_keys_are_ignored(self, tmp_config_dir):

@@ -130,7 +130,7 @@ class PropertiesPanel(QDockWidget):
 
         pen_row = QHBoxLayout()
         pen_row.addWidget(QLabel("Pen:"))
-        self._pen_color_btn = _ColorButton(QColor(config.editor.default_pen_color))
+        self._pen_color_btn = _ColorButton(QColor(255, 0, 0))
         self._pen_color_btn.color_changed.connect(self._on_pen_color_changed)
         pen_row.addWidget(self._pen_color_btn)
         pen_row.addStretch()
@@ -138,7 +138,7 @@ class PropertiesPanel(QDockWidget):
 
         fill_row = QHBoxLayout()
         fill_row.addWidget(QLabel("Fill:"))
-        self._fill_color_btn = _ColorButton(QColor(config.editor.default_fill_color))
+        self._fill_color_btn = _ColorButton(QColor(0, 0, 0, 0))
         self._fill_color_btn.color_changed.connect(self._on_fill_color_changed)
         fill_row.addWidget(self._fill_color_btn)
         fill_row.addStretch()
@@ -161,7 +161,7 @@ class PropertiesPanel(QDockWidget):
         width_row.addWidget(QLabel("Width:"))
         self._width_spin = QSpinBox()
         self._width_spin.setRange(1, 50)
-        self._width_spin.setValue(config.editor.default_pen_width)
+        self._width_spin.setValue(3)
         self._width_spin.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._width_spin.valueChanged.connect(self._on_width_changed)
         width_row.addWidget(self._width_spin)
@@ -190,7 +190,7 @@ class PropertiesPanel(QDockWidget):
         family_row.addWidget(QLabel("Family:"))
         self._font_combo = QFontComboBox()
         self._font_combo.setCurrentFont(
-            __import__("PyQt6.QtGui", fromlist=["QFont"]).QFont(config.editor.default_font)
+            __import__("PyQt6.QtGui", fromlist=["QFont"]).QFont("Sans")
         )
         self._font_combo.currentFontChanged.connect(self._on_font_changed)
         family_row.addWidget(self._font_combo)
@@ -200,7 +200,7 @@ class PropertiesPanel(QDockWidget):
         size_row.addWidget(QLabel("Size:"))
         self._font_size_spin = QSpinBox()
         self._font_size_spin.setRange(6, 200)
-        self._font_size_spin.setValue(config.editor.default_font_size)
+        self._font_size_spin.setValue(16)
         self._font_size_spin.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._font_size_spin.valueChanged.connect(self._on_font_size_changed)
         size_row.addWidget(self._font_size_spin)
@@ -252,6 +252,16 @@ class PropertiesPanel(QDockWidget):
 
     def set_opacity(self, opacity: float) -> None:
         self._opacity_slider.setValue(int(opacity * 100))
+
+    def set_font_family(self, family: str) -> None:
+        from PyQt6.QtGui import QFont
+        self._font_combo.setCurrentFont(QFont(family))
+
+    def set_font_size(self, size: int) -> None:
+        self._font_size_spin.setValue(size)
+
+    def set_block_size(self, size: int) -> None:
+        self._block_size_spin.setValue(size)
 
     def current_properties(self) -> dict:
         """Return the current property values as a dict."""

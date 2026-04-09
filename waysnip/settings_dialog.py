@@ -6,15 +6,12 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import (
     QCheckBox,
-    QColorDialog,
     QComboBox,
     QDialog,
     QDialogButtonBox,
     QFileDialog,
-    QFontComboBox,
     QFormLayout,
     QHBoxLayout,
     QLabel,
@@ -31,40 +28,6 @@ from waysnip.constants import APP_DISPLAY_NAME, APP_VERSION, CONFIG_FILE
 
 if TYPE_CHECKING:
     pass
-
-
-class _ColorButton(QPushButton):
-    """Small push-button that shows a colour swatch and opens a colour picker."""
-
-    color_changed = pyqtSignal(str)
-
-    def __init__(self, initial: str, parent: QWidget | None = None) -> None:
-        super().__init__(parent)
-        self._color = initial
-        self.setFixedSize(40, 24)
-        self._update_swatch()
-        self.clicked.connect(self._pick)
-
-    def color(self) -> str:
-        return self._color
-
-    def set_color(self, hex_color: str) -> None:
-        self._color = hex_color
-        self._update_swatch()
-
-    def _update_swatch(self) -> None:
-        self.setStyleSheet(
-            f"background-color: {self._color}; border: 1px solid #888; border-radius: 3px;"
-        )
-
-    def _pick(self) -> None:
-        current = QColor(self._color)
-        options = QColorDialog.ColorDialogOption.ShowAlphaChannel
-        chosen = QColorDialog.getColor(current, self, "Pick colour", options)
-        if chosen.isValid():
-            self._color = chosen.name(QColor.NameFormat.HexArgb) if chosen.alpha() < 255 else chosen.name()
-            self._update_swatch()
-            self.color_changed.emit(self._color)
 
 
 class SettingsDialog(QDialog):
@@ -85,7 +48,6 @@ class SettingsDialog(QDialog):
 
         self._build_capture_tab()
         self._build_save_tab()
-        self._build_editor_tab()
         self._build_tray_tab()
         self._build_about_tab()
 
@@ -174,47 +136,11 @@ class SettingsDialog(QDialog):
         self._save_mode.setCurrentIndex(0 if self._config.save.mode == "annotated" else 1)
         form.addRow("Save mode:", self._save_mode)
 
-        self._tabs.addTab(w, "Save")
-
-    def _build_editor_tab(self) -> None:
-        w = QWidget()
-        form = QFormLayout(w)
-
-        self._pen_color = _ColorButton(self._config.editor.default_pen_color)
-        form.addRow("Default pen color:", self._pen_color)
-
-        self._fill_color = _ColorButton(self._config.editor.default_fill_color)
-        form.addRow("Default fill color:", self._fill_color)
-
-        self._pen_width = QSpinBox()
-        self._pen_width.setRange(1, 50)
-        self._pen_width.setValue(self._config.editor.default_pen_width)
-        form.addRow("Default pen width:", self._pen_width)
-
-        self._font_combo = QFontComboBox()
-        self._font_combo.setCurrentFont(self._font_combo.font())
-        # Try to match saved font
-        from PyQt6.QtGui import QFont
-
-        self._font_combo.setCurrentFont(QFont(self._config.editor.default_font))
-        form.addRow("Default font:", self._font_combo)
-
-        self._font_size = QSpinBox()
-        self._font_size.setRange(6, 200)
-        self._font_size.setValue(self._config.editor.default_font_size)
-        form.addRow("Default font size:", self._font_size)
-
-        self._blur_block = QSpinBox()
-        self._blur_block.setRange(2, 50)
-        self._blur_block.setSuffix(" px")
-        self._blur_block.setValue(self._config.editor.default_blur_block_size)
-        form.addRow("Default blur block size:", self._blur_block)
-
         self._copy_on_save = QCheckBox("Copy image to clipboard on save")
         self._copy_on_save.setChecked(self._config.editor.copy_on_save)
         form.addRow("", self._copy_on_save)
 
-        self._tabs.addTab(w, "Editor")
+        self._tabs.addTab(w, "Save")
 
     def _build_tray_tab(self) -> None:
         w = QWidget()
@@ -288,12 +214,6 @@ class SettingsDialog(QDialog):
         self._config.save.pattern = self._pattern.text()
         self._config.save.mode = "annotated" if self._save_mode.currentIndex() == 0 else "editable"
 
-        self._config.editor.default_pen_color = self._pen_color.color()
-        self._config.editor.default_fill_color = self._fill_color.color()
-        self._config.editor.default_pen_width = self._pen_width.value()
-        self._config.editor.default_font = self._font_combo.currentFont().family()
-        self._config.editor.default_font_size = self._font_size.value()
-        self._config.editor.default_blur_block_size = self._blur_block.value()
         self._config.editor.copy_on_save = self._copy_on_save.isChecked()
 
         self._config.tray.enabled = self._tray_enabled.isChecked()

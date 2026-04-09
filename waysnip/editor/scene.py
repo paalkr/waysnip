@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
     QGraphicsSceneMouseEvent,
 )
 
+from waysnip.editor.tool_properties import ToolPropertyStore
 from waysnip.editor.tools.base import BaseAnnotationItem, BaseTool
 
 
@@ -25,13 +26,8 @@ class AnnotationScene(QGraphicsScene):
         self._active_tool: BaseTool | None = None
         self._undo_stack = QUndoStack(self)
 
-        # Current drawing properties — tools read these when creating new items
-        self.drawing_properties: dict[str, Any] = {
-            "pen_color": QColor(255, 0, 0),
-            "fill_color": QColor(0, 0, 0, 0),
-            "pen_width": 3,
-            "item_opacity": 1.0,
-        }
+        self._tool_store: ToolPropertyStore | None = None
+        self._active_tool_name: str = "select"
 
     # --- Background ---
 
@@ -70,6 +66,26 @@ class AnnotationScene(QGraphicsScene):
         self._active_tool = tool
         if self._active_tool is not None:
             self._active_tool.activate(self)
+
+    def set_tool_property_store(self, store: ToolPropertyStore) -> None:
+        self._tool_store = store
+
+    def set_active_tool_name(self, name: str) -> None:
+        self._active_tool_name = name
+
+    @property
+    def drawing_properties(self) -> dict[str, Any]:
+        """Return properties for the currently active tool, with QColor conversion."""
+        if self._tool_store is None:
+            return {}
+        raw = self._tool_store.get(self._active_tool_name)
+        result: dict[str, Any] = {}
+        for k, v in raw.items():
+            if k in ("pen_color", "fill_color") and isinstance(v, str):
+                result[k] = QColor(v)
+            else:
+                result[k] = v
+        return result
 
     # --- Undo stack ---
 

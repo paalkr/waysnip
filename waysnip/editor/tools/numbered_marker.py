@@ -38,6 +38,16 @@ class NumberedMarkerItem(BaseAnnotationItem):
         NumberedMarkerItem._creation_counter += 1
         self._creation_order: int = NumberedMarkerItem._creation_counter
 
+    def apply_drawing_properties(self, props: dict) -> None:
+        """Apply properties, mapping pen_color→circle_color, fill_color→text_color."""
+        super().apply_drawing_properties(props)
+        if "pen_color" in props:
+            color = props["pen_color"]
+            self._circle_color = QColor(color) if isinstance(color, str) else color
+        if "fill_color" in props:
+            color = props["fill_color"]
+            self._text_color = QColor(color) if isinstance(color, str) else color
+
     @property
     def number(self) -> int:
         return self._number

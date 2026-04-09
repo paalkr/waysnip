@@ -12,14 +12,9 @@ import tomli_w
 from waysnip.constants import (
     CONFIG_DIR,
     CONFIG_FILE,
-    DEFAULT_FILL_COLOR,
     DEFAULT_FILENAME_PATTERN,
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_FONT_SIZE,
     DEFAULT_MAGNIFIER_SIZE,
     DEFAULT_MAGNIFIER_ZOOM,
-    DEFAULT_PEN_COLOR,
-    DEFAULT_PEN_WIDTH,
     DEFAULT_SAVE_DIR,
 )
 
@@ -40,12 +35,6 @@ class SaveConfig:
 
 @dataclass
 class EditorConfig:
-    default_pen_color: str = DEFAULT_PEN_COLOR
-    default_pen_width: int = DEFAULT_PEN_WIDTH
-    default_fill_color: str = DEFAULT_FILL_COLOR
-    default_font: str = DEFAULT_FONT_FAMILY
-    default_font_size: int = DEFAULT_FONT_SIZE
-    default_blur_block_size: int = 10
     copy_on_save: bool = True
     recent_colors: list[str] = field(default_factory=list)
 

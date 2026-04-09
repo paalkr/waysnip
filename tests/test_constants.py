@@ -29,10 +29,7 @@ class TestConstantsExist:
         assert isinstance(C.DEFAULT_FILENAME_PATTERN, str)
         assert ".png" in C.DEFAULT_FILENAME_PATTERN
 
-    def test_editor_defaults(self):
-        assert C.DEFAULT_PEN_COLOR == "#ff0000"
-        assert C.DEFAULT_PEN_WIDTH == 3
-        assert C.DEFAULT_FILL_COLOR == "#00000000"
+    def test_font_defaults(self):
         assert isinstance(C.DEFAULT_FONT_FAMILY, str)
         assert isinstance(C.DEFAULT_FONT_SIZE, int)
 

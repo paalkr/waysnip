@@ -40,6 +40,18 @@ class TextItem(BaseAnnotationItem):
         # Override default pen color — text items primarily use text_color
         self._pen_color = QColor(255, 255, 255)
 
+    def apply_drawing_properties(self, props: dict) -> None:
+        """Apply properties, mapping pen_color to text_color and handling font."""
+        super().apply_drawing_properties(props)
+        if "pen_color" in props:
+            color = props["pen_color"]
+            self._text_color = QColor(color) if isinstance(color, str) else color
+        if "font_family" in props:
+            self._font_family = props["font_family"]
+        if "font_size" in props:
+            self._font_size = max(6, props["font_size"])
+        self._ensure_text_item()
+
     @property
     def font_family(self) -> str:
         return self._font_family

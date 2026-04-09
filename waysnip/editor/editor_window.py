@@ -21,10 +21,13 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from typing import Any
+
 from waysnip.config import AppConfig
 from waysnip.constants import APP_DISPLAY_NAME
 from waysnip.editor.canvas import AnnotationCanvas
 from waysnip.editor.scene import AnnotationScene
+from waysnip.editor.tool_properties import ToolPropertyStore
 from waysnip.editor.toolbar import AnnotationToolbar
 from waysnip.editor.properties_panel import PropertiesPanel
 from waysnip.editor.tools.base import BaseAnnotationItem, BaseTool
@@ -67,13 +70,10 @@ class EditorWindow(QMainWindow):
         self._scene = AnnotationScene(self)
         self._scene.set_background_pixmap(pixmap)
 
-        # Initialize drawing properties from config
-        self._scene.drawing_properties.update({
-            "pen_color": QColor(self._config.editor.default_pen_color),
-            "fill_color": QColor(self._config.editor.default_fill_color),
-            "pen_width": self._config.editor.default_pen_width,
-            "block_size": self._config.editor.default_blur_block_size,
-        })
+        # Per-tool property store (each editor window gets its own copy)
+        self._tool_store = ToolPropertyStore.load()
+        self._scene.set_tool_property_store(self._tool_store)
+        self._current_tool_name: str = "select"
         self._canvas = AnnotationCanvas(self._scene, self)
         self.setCentralWidget(self._canvas)
 
@@ -208,6 +208,12 @@ class EditorWindow(QMainWindow):
         clone_action.triggered.connect(self._clone_selected)
         edit_menu.addAction(clone_action)
 
+        edit_menu.addSeparator()
+
+        reset_tools_action = QAction("Reset Tool &Defaults", self)
+        reset_tools_action.triggered.connect(self._reset_tool_defaults)
+        edit_menu.addAction(reset_tools_action)
+
         # View menu
         view_menu = menu_bar.addMenu("&View")
 
@@ -236,11 +242,38 @@ class EditorWindow(QMainWindow):
     def _on_tool_changed(self, name: str) -> None:
         tool = self._tools.get(name)
         if tool:
+            self._current_tool_name = name
             self._scene.set_active_tool(tool)
+            self._scene.set_active_tool_name(name)
             cursor = tool.cursor_shape
             self._canvas.setCursor(cursor)
             self._properties.set_tool_name(name)
+            self._load_tool_properties_into_panel(name)
             self._update_status()
+
+    def _load_tool_properties_into_panel(self, tool_name: str) -> None:
+        """Push the stored properties for a tool into the properties panel widgets."""
+        props = self._tool_store.get(tool_name)
+        if not props:
+            return
+        self._properties.blockSignals(True)
+        try:
+            if "pen_color" in props:
+                self._properties.set_pen_color(QColor(props["pen_color"]))
+            if "fill_color" in props:
+                self._properties.set_fill_color(QColor(props["fill_color"]))
+            if "pen_width" in props:
+                self._properties.set_pen_width(props["pen_width"])
+            if "item_opacity" in props:
+                self._properties.set_opacity(props["item_opacity"])
+            if "font_family" in props:
+                self._properties.set_font_family(props["font_family"])
+            if "font_size" in props:
+                self._properties.set_font_size(props["font_size"])
+            if "block_size" in props:
+                self._properties.set_block_size(props["block_size"])
+        finally:
+            self._properties.blockSignals(False)
 
     # --- Annotation restoration ---
 
@@ -289,9 +322,15 @@ class EditorWindow(QMainWindow):
     # --- Properties ---
 
     def _on_properties_changed(self, props: dict) -> None:
-        """Apply changed properties to selected items and update drawing defaults."""
-        # Update the scene's drawing properties so new items use these values
-        self._scene.drawing_properties.update(props)
+        """Apply changed properties to selected items and update per-tool defaults."""
+        # Convert QColor values to hex strings for storage
+        store_props: dict[str, Any] = {}
+        for k, v in props.items():
+            if isinstance(v, QColor):
+                store_props[k] = v.name(QColor.NameFormat.HexArgb)
+            else:
+                store_props[k] = v
+        self._tool_store.update(self._current_tool_name, store_props)
 
         # Also apply to currently selected items
         for item in self._scene.selectedItems():
@@ -299,6 +338,11 @@ class EditorWindow(QMainWindow):
                 for key, value in props.items():
                     if hasattr(item, key):
                         setattr(item, key, value)
+
+    def _reset_tool_defaults(self) -> None:
+        """Reset all tool drawing properties to code defaults."""
+        self._tool_store.reset_all()
+        self._load_tool_properties_into_panel(self._current_tool_name)
 
     # --- Actions ---
 
@@ -473,4 +517,5 @@ class EditorWindow(QMainWindow):
             if reply == QMessageBox.StandardButton.No:
                 event.ignore()
                 return
+        self._tool_store.save()
         event.accept()
