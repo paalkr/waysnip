@@ -28,6 +28,10 @@
 | Ctrl+D | Clone selected |
 | Ctrl+A | Select all |
 | Delete | Delete selected |
+| Ctrl+Shift+] | Bring to front |
+| Ctrl+Shift+[ | Send to back |
+| Ctrl+] | Move up one layer |
+| Ctrl+[ | Move down one layer |
 | Ctrl+W | Close editor |
 | Ctrl+0 | Fit to window |
 | Ctrl++ | Zoom in |

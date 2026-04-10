@@ -75,6 +75,10 @@ waysnip setup
 | Ctrl+C | Copy to clipboard |
 | Ctrl+D | Clone selected |
 | Del | Delete selected |
+| Ctrl+Shift+] | Bring to front |
+| Ctrl+Shift+[ | Send to back |
+| Ctrl+] | Move up one layer |
+| Ctrl+[ | Move down one layer |
 
 ## Configuration
 
@@ -92,9 +96,6 @@ pattern = "Screenshot_%Y-%m-%d_%H-%M-%S.png"
 mode = "annotated"          # "annotated" (re-editable) or "editable" (smaller)
 
 [editor]
-default_pen_color = "#ff0000"
-default_pen_width = 3
-default_blur_block_size = 10
 copy_on_save = true
 
 [tray]

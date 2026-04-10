@@ -10,6 +10,19 @@ The default tool. Click an annotation to select it, drag to move it. Selected an
 - **Ctrl+D** clones (duplicates) selected annotations
 - **Ctrl+A** selects all annotations
 
+Right-click a selected annotation to open the context menu with layer ordering, delete, and clone options.
+
+### Layer ordering
+
+Annotations stack in the order they are drawn. You can reorder them via the Edit menu or context menu:
+
+- **Bring to front** (Ctrl+Shift+]) — move above all other annotations
+- **Send to back** (Ctrl+Shift+[) — move below all other annotations
+- **Move up** (Ctrl+]) — swap with the annotation one layer above
+- **Move down** (Ctrl+[) — swap with the annotation one layer below
+
+Layer order is preserved when saving and re-opening images.
+
 ## Rectangle (R)
 
 Click and drag to draw a rectangle. Supports border color, fill color, and corner radius.
@@ -45,6 +58,8 @@ Click and drag to draw a semi-transparent wide stroke, like a highlighter pen. G
 ## Blur (B)
 
 Click and drag to draw a blur region. The area is pixelated with a configurable block size (default 10px). Use this to obscure sensitive information.
+
+Blur regions always stay below other annotations in the layer stack — they only pixelate the background image, not annotations drawn on top. This means you can blur a region and then draw arrows or text over it without those being affected. Blur regions are not affected by layer ordering commands.
 
 ## Crop (C)
 
