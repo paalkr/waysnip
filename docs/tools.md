@@ -4,7 +4,7 @@ All tools are available from the toolbar at the top of the editor. Each has a si
 
 ## Select (V)
 
-The default tool. Click an annotation to select it, drag to move it. Selected annotations show resize handles at the corners and edges. Hold Shift and click to add to the selection.
+The default tool. Click an annotation to select it, drag to move it. Selected annotations show resize handles at the corners and edges. Hold **Ctrl** and click to add to the selection.
 
 - **Delete** removes selected annotations
 - **Ctrl+D** clones (duplicates) selected annotations
