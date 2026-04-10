@@ -33,6 +33,8 @@ class BlurItem(BaseAnnotationItem):
         # Pixelate has no pen/fill and always full opacity
         self._pen_width = 0
         self._opacity = 1.0
+        # Always below other annotations so blur only affects the background
+        self.setZValue(-500)
 
     @property
     def block_size(self) -> int:
