@@ -265,6 +265,10 @@ class EditorWindow(QMainWindow):
     def _on_tool_changed(self, name: str) -> None:
         tool = self._tools.get(name)
         if tool:
+            # Clear selection when switching away from select tool so that
+            # selected items don't intercept mouse events meant for the new tool.
+            if name != "select":
+                self._scene.clearSelection()
             self._current_tool_name = name
             self._scene.set_active_tool(tool)
             self._scene.set_active_tool_name(name)

@@ -33,6 +33,7 @@ class BlurItem(BaseAnnotationItem):
         # Pixelate has no pen/fill and always full opacity
         self._pen_width = 0
         self._opacity = 1.0
+        self._drawing: bool = False  # True while being drawn (before commit)
         # Always below other annotations so blur only affects the background
         self.setZValue(-500)
 
@@ -131,7 +132,8 @@ class BlurItem(BaseAnnotationItem):
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = None) -> None:
         self._render_pixelated(painter)
 
-        if self.isSelected():
+        # Show boundary when selected or while being drawn (not yet committed)
+        if self.isSelected() or self._drawing:
             painter.setPen(QPen(QColor(0, 120, 215), 1, Qt.PenStyle.DashLine))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawRect(self._rect)
@@ -179,6 +181,7 @@ class BlurTool(BaseTool):
         scene.clearSelection()
         self._start_pos = event.scenePos()
         self._current_item = BlurItem()
+        self._current_item._drawing = True
         # Apply block_size from drawing properties if set
         if "block_size" in scene.drawing_properties:
             self._current_item.block_size = scene.drawing_properties["block_size"]
@@ -198,6 +201,7 @@ class BlurTool(BaseTool):
     def mouse_release(self, scene: QGraphicsScene, event: QGraphicsSceneMouseEvent) -> None:
         if self._current_item is None:
             return
+        self._current_item._drawing = False
         if self._current_item._rect.width() < 3 and self._current_item._rect.height() < 3:
             scene.removeItem(self._current_item)
         else:
