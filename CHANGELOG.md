@@ -3,6 +3,26 @@
 All notable changes to WaySnip will be documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.4.0] - 2026-04-10
+
+### Added
+- Layer ordering: bring to front, send to back, move up, move down via Edit menu and context menu
+- Keyboard shortcuts for layer ordering: Ctrl+Shift+]/[, Ctrl+]/[
+- Right-click context menu on annotations (reorder, delete, clone)
+- Per-tool drawing properties: each tool remembers its own color, width, opacity, and font independently
+- Per-tool state persisted in `~/.config/waysnip/tool_state.json`
+- Edit > Reset Tool Defaults menu action
+- Blur regions show a dashed boundary while drawing and when selected
+- Z-order preserved in saved PNG metadata
+
+### Fixed
+- Switching tools while an annotation is selected now works (selection is cleared on tool switch)
+- Objects no longer stick to the mouse after using the context menu
+- Blur regions always render below other annotations regardless of draw order
+
+### Removed
+- Global drawing defaults from config (`default_pen_color`, `default_pen_width`, `default_fill_color`, `default_font`, `default_font_size`, `default_blur_block_size`). These are now per-tool properties.
+
 ## [0.3.0] - 2026-04-06
 
 ### Added
