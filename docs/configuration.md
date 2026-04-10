@@ -40,12 +40,6 @@ pattern = "Screenshot_%Y-%m-%d_%H-%M-%S.png"
 mode = "annotated"             # "annotated" or "editable"
 
 [editor]
-default_pen_color = "#ff0000"
-default_pen_width = 3
-default_fill_color = "#00000000"   # transparent
-default_font = "Sans"
-default_font_size = 16
-default_blur_block_size = 10
 copy_on_save = true
 recent_colors = []
 
@@ -81,14 +75,10 @@ left_click_action = "region"
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `default_pen_color` | string | `"#ff0000"` | Default border/stroke color (hex) |
-| `default_pen_width` | int | `3` | Default stroke width in pixels |
-| `default_fill_color` | string | `"#00000000"` | Default fill color (hex with alpha, `00` = transparent) |
-| `default_font` | string | `"Sans"` | Font family for the text tool |
-| `default_font_size` | int | `16` | Font size for the text tool |
-| `default_blur_block_size` | int | `10` | Pixel block size for the blur tool |
 | `copy_on_save` | bool | `true` | Copy to clipboard when saving |
 | `recent_colors` | list | `[]` | Recently used colors (managed automatically, max 8) |
+
+Drawing defaults (color, width, opacity, font) are now stored per-tool. See [Per-tool properties](#per-tool-properties) below.
 
 ### [magnifier]
 
