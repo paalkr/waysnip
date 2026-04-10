@@ -21,7 +21,7 @@ The screen freezes and you get a crosshair cursor with a magnifier.
 
 After confirming the region, the editor opens with your screenshot.
 
-- The toolbar on the left has all annotation tools (rectangle, arrow, text, blur, etc.)
+- The toolbar at the top has all annotation tools (rectangle, arrow, text, blur, etc.)
 - Pick a tool and draw on the image
 - Use the color picker and width controls to style your annotations
 - **Ctrl+Z** to undo, **Ctrl+Y** to redo

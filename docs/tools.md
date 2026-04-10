@@ -1,6 +1,6 @@
 # Annotation tools
 
-All tools are available from the toolbar on the left side of the editor. Each has a single-key shortcut.
+All tools are available from the toolbar at the top of the editor. Each has a single-key shortcut.
 
 ## Select (V)
 
