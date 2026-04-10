@@ -94,3 +94,17 @@ Drawing defaults (color, width, opacity, font) are now stored per-tool. See [Per
 |---|---|---|---|
 | `enabled` | bool | `true` | Show system tray icon |
 | `left_click_action` | string | `"region"` | Action when left-clicking the tray icon |
+
+## Per-tool properties
+
+Each annotation tool remembers its own drawing settings (color, width, opacity, font, etc.) independently. When you change the pen color while using the arrow tool, that color is remembered for arrows but doesn't affect rectangles or other tools.
+
+Per-tool properties are stored in:
+
+```
+~/.config/waysnip/tool_state.json
+```
+
+This file is loaded when the editor opens and saved when it closes. You don't need to edit it manually.
+
+To reset all tools to their defaults, use **Edit > Reset Tool Defaults** in the editor menu bar.
