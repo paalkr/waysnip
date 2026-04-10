@@ -41,6 +41,10 @@ class SelectTool(BaseTool):
         self._cleanup_rubber_band(scene)
 
     def mouse_press(self, scene: QGraphicsScene, event: QGraphicsSceneMouseEvent) -> None:
+        # Only act on left-click — right-click is reserved for context menu
+        if event.button() != Qt.MouseButton.LeftButton:
+            return
+
         pos = event.scenePos()
         item_at = scene.itemAt(pos, scene.views()[0].transform() if scene.views() else __import__("PyQt6.QtGui", fromlist=["QTransform"]).QTransform())
 
