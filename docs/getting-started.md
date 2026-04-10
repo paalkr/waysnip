@@ -26,6 +26,9 @@ After confirming the region, the editor opens with your screenshot.
 - Use the color picker and width controls to style your annotations
 - **Ctrl+Z** to undo, **Ctrl+Y** to redo
 - **Ctrl+S** to save, **Ctrl+C** to copy to clipboard
+- Right-click a selected annotation for a context menu (reorder layers, delete, clone)
+
+Each tool remembers its own drawing settings. Change the pen color for arrows and it stays that way next time you use arrows, without affecting other tools.
 
 Annotations are saved inside the PNG file. When you open the image later, you can still move and edit every annotation.
 
