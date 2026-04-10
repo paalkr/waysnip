@@ -79,6 +79,8 @@ waysnip setup
 | Ctrl+Shift+[ | Send to back |
 | Ctrl+] | Move up one layer |
 | Ctrl+[ | Move down one layer |
+| Ctrl+1 | Actual size (100%) |
+| Ctrl+0 | Fit to window |
 
 ## Configuration
 

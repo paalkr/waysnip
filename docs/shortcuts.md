@@ -33,6 +33,7 @@
 | Ctrl+] | Move up one layer |
 | Ctrl+[ | Move down one layer |
 | Ctrl+W | Close editor |
+| Ctrl+1 | Actual size (100%) |
 | Ctrl+0 | Fit to window |
 | Ctrl++ | Zoom in |
 | Ctrl+- | Zoom out |
