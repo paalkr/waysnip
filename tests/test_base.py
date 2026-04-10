@@ -165,7 +165,7 @@ class TestSerialization:
     def test_serialize_has_expected_keys(self, qapp):
         item = _TestItem()
         data = item.serialize()
-        expected_keys = {"type", "x", "y", "pen_color", "fill_color", "pen_width", "opacity", "rotation"}
+        expected_keys = {"type", "x", "y", "z_order", "pen_color", "fill_color", "pen_width", "opacity", "rotation"}
         assert expected_keys == set(data.keys())
 
     def test_serialize_type_matches(self, qapp):

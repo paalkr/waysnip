@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from PyQt6.QtCore import Qt, QPointF, QTimer, pyqtSignal
 from PyQt6.QtGui import QPainter, QWheelEvent, QMouseEvent, QKeyEvent
-from PyQt6.QtWidgets import QGraphicsView
+from PyQt6.QtWidgets import QGraphicsView, QMenu
 
 from waysnip.editor.scene import AnnotationScene
+from waysnip.editor.tools.base import BaseAnnotationItem
 
 
 class AnnotationCanvas(QGraphicsView):
@@ -160,3 +161,62 @@ class AnnotationCanvas(QGraphicsView):
             if not self._panning:
                 self.unsetCursor()
         super().keyReleaseEvent(event)
+
+    # --- Context menu ---
+
+    def contextMenuEvent(self, event) -> None:
+        scene = self.scene()
+        if not isinstance(scene, AnnotationScene):
+            return super().contextMenuEvent(event)
+
+        from waysnip.editor.tools.blur import BlurItem
+
+        scene_pos = self.mapToScene(event.pos())
+        item = scene.itemAt(scene_pos, self.transform())
+
+        # Walk up to the annotation parent (might have clicked a handle)
+        while item is not None and not isinstance(item, BaseAnnotationItem):
+            item = item.parentItem()
+
+        if item is None or not isinstance(item, BaseAnnotationItem):
+            return super().contextMenuEvent(event)
+
+        if not item.isSelected():
+            scene.clearSelection()
+            item.setSelected(True)
+
+        menu = QMenu(self)
+        is_blur = isinstance(item, BlurItem)
+
+        if not is_blur:
+            bring_front = menu.addAction("Bring to front")
+            move_up = menu.addAction("Move up")
+            move_down = menu.addAction("Move down")
+            send_back = menu.addAction("Send to back")
+            menu.addSeparator()
+        else:
+            bring_front = move_up = move_down = send_back = None
+
+        delete_action = menu.addAction("Delete")
+        clone_action = menu.addAction("Clone")
+
+        chosen = menu.exec(event.globalPos())
+        if chosen is None:
+            return
+
+        # Find the editor window for action dispatch
+        window = self.window()
+
+        if chosen is delete_action:
+            window._delete_selected()
+        elif chosen is clone_action:
+            window._clone_selected()
+        elif not is_blur:
+            if chosen is bring_front:
+                window._bring_to_front()
+            elif chosen is send_back:
+                window._send_to_back()
+            elif chosen is move_up:
+                window._move_up()
+            elif chosen is move_down:
+                window._move_down()

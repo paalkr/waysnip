@@ -158,6 +158,8 @@ class BlurItem(BaseAnnotationItem):
             data.get("height", 60),
         )
         item._block_size = data.get("block_size", 10)
+        # Always pin blur below annotations regardless of saved z_order
+        item.setZValue(-500)
         return item
 
 

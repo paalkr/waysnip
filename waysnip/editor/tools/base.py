@@ -249,6 +249,7 @@ class BaseAnnotationItem(QGraphicsItem):
             "type": self.item_type,
             "x": self.pos().x(),
             "y": self.pos().y(),
+            "z_order": self.zValue(),
             "pen_color": self._pen_color.name(QColor.NameFormat.HexArgb),
             "fill_color": self._fill_color.name(QColor.NameFormat.HexArgb),
             "pen_width": self._pen_width,
@@ -283,6 +284,8 @@ class BaseAnnotationItem(QGraphicsItem):
     def _apply_base_data(self, data: dict[str, Any]) -> None:
         """Apply common serialized fields to this item."""
         self.setPos(data.get("x", 0), data.get("y", 0))
+        if "z_order" in data:
+            self.setZValue(data["z_order"])
         self._pen_color = QColor(data.get("pen_color", "#ffff0000"))
         self._fill_color = QColor(data.get("fill_color", "#00000000"))
         self._pen_width = data.get("pen_width", 3)

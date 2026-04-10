@@ -42,7 +42,7 @@ from waysnip.editor.tools.freehand import FreehandTool
 from waysnip.editor.tools.highlight import HighlightTool
 from waysnip.editor.tools.blur import BlurTool
 from waysnip.editor.tools.crop import CropTool
-from waysnip.editor.commands import RemoveItemCommand, AddItemCommand
+from waysnip.editor.commands import RemoveItemCommand, AddItemCommand, ReorderItemCommand
 
 
 class EditorWindow(QMainWindow):
@@ -207,6 +207,29 @@ class EditorWindow(QMainWindow):
         clone_action.setShortcut(QKeySequence("Ctrl+D"))
         clone_action.triggered.connect(self._clone_selected)
         edit_menu.addAction(clone_action)
+
+        edit_menu.addSeparator()
+
+        # Layer ordering
+        bring_front_action = QAction("Bring to &Front", self)
+        bring_front_action.setShortcut(QKeySequence("Ctrl+Shift+]"))
+        bring_front_action.triggered.connect(self._bring_to_front)
+        edit_menu.addAction(bring_front_action)
+
+        send_back_action = QAction("Send to &Back", self)
+        send_back_action.setShortcut(QKeySequence("Ctrl+Shift+["))
+        send_back_action.triggered.connect(self._send_to_back)
+        edit_menu.addAction(send_back_action)
+
+        move_up_action = QAction("Move &Up", self)
+        move_up_action.setShortcut(QKeySequence("Ctrl+]"))
+        move_up_action.triggered.connect(self._move_up)
+        edit_menu.addAction(move_up_action)
+
+        move_down_action = QAction("Move Do&wn", self)
+        move_down_action.setShortcut(QKeySequence("Ctrl+["))
+        move_down_action.triggered.connect(self._move_down)
+        edit_menu.addAction(move_down_action)
 
         edit_menu.addSeparator()
 
@@ -376,6 +399,61 @@ class EditorWindow(QMainWindow):
                 cmd = AddItemCommand(self._scene, cloned)
                 self._scene.undo_stack.push(cmd)
                 cloned.setSelected(True)
+
+    # --- Layer ordering ---
+
+    def _get_single_reorderable(self) -> BaseAnnotationItem | None:
+        """Return the single selected non-blur item, or None."""
+        from waysnip.editor.tools.blur import BlurItem
+        selected = [
+            item for item in self._scene.selectedItems()
+            if isinstance(item, BaseAnnotationItem) and not isinstance(item, BlurItem)
+        ]
+        return selected[0] if len(selected) == 1 else None
+
+    def _bring_to_front(self) -> None:
+        item = self._get_single_reorderable()
+        if item is None:
+            return
+        new_z = self._scene.bring_to_front(item)
+        if new_z is not None:
+            cmd = ReorderItemCommand(self._scene, item, item.zValue(), new_z)
+            self._scene.undo_stack.push(cmd)
+
+    def _send_to_back(self) -> None:
+        item = self._get_single_reorderable()
+        if item is None:
+            return
+        new_z = self._scene.send_to_back(item)
+        if new_z is not None:
+            cmd = ReorderItemCommand(self._scene, item, item.zValue(), new_z)
+            self._scene.undo_stack.push(cmd)
+
+    def _move_up(self) -> None:
+        item = self._get_single_reorderable()
+        if item is None:
+            return
+        result = self._scene.move_up(item)
+        if result is not None:
+            new_z, other, other_new_z = result
+            cmd = ReorderItemCommand(
+                self._scene, item, item.zValue(), new_z,
+                other_item=other, other_old_z=other.zValue(), other_new_z=other_new_z,
+            )
+            self._scene.undo_stack.push(cmd)
+
+    def _move_down(self) -> None:
+        item = self._get_single_reorderable()
+        if item is None:
+            return
+        result = self._scene.move_down(item)
+        if result is not None:
+            new_z, other, other_new_z = result
+            cmd = ReorderItemCommand(
+                self._scene, item, item.zValue(), new_z,
+                other_item=other, other_old_z=other.zValue(), other_new_z=other_new_z,
+            )
+            self._scene.undo_stack.push(cmd)
 
     def _zoom_in(self) -> None:
         self._canvas.zoom_to(self._canvas.zoom_factor * 1.25)

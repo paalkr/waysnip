@@ -89,6 +89,39 @@ class ResizeItemCommand(QUndoCommand):
             self._item.set_rect(self._old_rect)
 
 
+class ReorderItemCommand(QUndoCommand):
+    """Change the z-order of one or two items (for swap operations)."""
+
+    def __init__(
+        self,
+        scene: QGraphicsScene,
+        item: BaseAnnotationItem,
+        old_z: float,
+        new_z: float,
+        other_item: BaseAnnotationItem | None = None,
+        other_old_z: float = 0,
+        other_new_z: float = 0,
+    ) -> None:
+        super().__init__("Reorder " + (item.item_type or "item"))
+        self._scene = scene
+        self._item = item
+        self._old_z = old_z
+        self._new_z = new_z
+        self._other_item = other_item
+        self._other_old_z = other_old_z
+        self._other_new_z = other_new_z
+
+    def redo(self) -> None:
+        self._item.setZValue(self._new_z)
+        if self._other_item is not None:
+            self._other_item.setZValue(self._other_new_z)
+
+    def undo(self) -> None:
+        self._item.setZValue(self._old_z)
+        if self._other_item is not None:
+            self._other_item.setZValue(self._other_old_z)
+
+
 class ChangePropertyCommand(QUndoCommand):
     """Change a property on an annotation item."""
 
