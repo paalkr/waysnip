@@ -567,6 +567,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#per-tool-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-tool properties
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -771,6 +782,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#per-tool-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-tool properties
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -817,12 +839,6 @@
 <span class="n">mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;annotated&quot;</span><span class="w">             </span><span class="c1"># &quot;annotated&quot; or &quot;editable&quot;</span>
 
 <span class="k">[editor]</span>
-<span class="n">default_pen_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;#ff0000&quot;</span>
-<span class="n">default_pen_width</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
-<span class="n">default_fill_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;#00000000&quot;</span><span class="w">   </span><span class="c1"># transparent</span>
-<span class="n">default_font</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Sans&quot;</span>
-<span class="n">default_font_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16</span>
-<span class="n">default_blur_block_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
 <span class="n">copy_on_save</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 <span class="n">recent_colors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
 
@@ -910,42 +926,6 @@
 </thead>
 <tbody>
 <tr>
-<td><code>default_pen_color</code></td>
-<td>string</td>
-<td><code>"#ff0000"</code></td>
-<td>Default border/stroke color (hex)</td>
-</tr>
-<tr>
-<td><code>default_pen_width</code></td>
-<td>int</td>
-<td><code>3</code></td>
-<td>Default stroke width in pixels</td>
-</tr>
-<tr>
-<td><code>default_fill_color</code></td>
-<td>string</td>
-<td><code>"#00000000"</code></td>
-<td>Default fill color (hex with alpha, <code>00</code> = transparent)</td>
-</tr>
-<tr>
-<td><code>default_font</code></td>
-<td>string</td>
-<td><code>"Sans"</code></td>
-<td>Font family for the text tool</td>
-</tr>
-<tr>
-<td><code>default_font_size</code></td>
-<td>int</td>
-<td><code>16</code></td>
-<td>Font size for the text tool</td>
-</tr>
-<tr>
-<td><code>default_blur_block_size</code></td>
-<td>int</td>
-<td><code>10</code></td>
-<td>Pixel block size for the blur tool</td>
-</tr>
-<tr>
 <td><code>copy_on_save</code></td>
 <td>bool</td>
 <td><code>true</code></td>
@@ -959,6 +939,7 @@
 </tr>
 </tbody>
 </table>
+<p>Drawing defaults (color, width, opacity, font) are now stored per-tool. See <a href="#per-tool-properties">Per-tool properties</a> below.</p>
 <h3 id="magnifier">[magnifier]</h3>
 <table>
 <thead>
@@ -1015,6 +996,13 @@
 </tr>
 </tbody>
 </table>
+<h2 id="per-tool-properties">Per-tool properties</h2>
+<p>Each annotation tool remembers its own drawing settings (color, width, opacity, font, etc.) independently. When you change the pen color while using the arrow tool, that color is remembered for arrows but doesn't affect rectangles or other tools.</p>
+<p>Per-tool properties are stored in:</p>
+<div class="highlight"><pre><span></span><code>~/.config/waysnip/tool_state.json
+</code></pre></div>
+<p>This file is loaded when the editor opens and saved when it closes. You don't need to edit it manually.</p>
+<p>To reset all tools to their defaults, use <strong>Edit &gt; Reset Tool Defaults</strong> in the editor menu bar.</p>
 
 
 

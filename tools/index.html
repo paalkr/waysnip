@@ -406,6 +406,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Select (V)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layer-ordering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer ordering
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -669,6 +686,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Select (V)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layer-ordering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer ordering
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -802,14 +836,24 @@
 
 
 <h1 id="annotation-tools">Annotation tools</h1>
-<p>All tools are available from the toolbar on the left side of the editor. Each has a single-key shortcut.</p>
+<p>All tools are available from the toolbar at the top of the editor. Each has a single-key shortcut.</p>
 <h2 id="select-v">Select (V)</h2>
-<p>The default tool. Click an annotation to select it, drag to move it. Selected annotations show resize handles at the corners and edges. Hold Shift and click to add to the selection.</p>
+<p>The default tool. Click an annotation to select it, drag to move it. Selected annotations show resize handles at the corners and edges. Hold <strong>Ctrl</strong> and click to add to the selection.</p>
 <ul>
 <li><strong>Delete</strong> removes selected annotations</li>
 <li><strong>Ctrl+D</strong> clones (duplicates) selected annotations</li>
 <li><strong>Ctrl+A</strong> selects all annotations</li>
 </ul>
+<p>Right-click a selected annotation to open the context menu with layer ordering, delete, and clone options.</p>
+<h3 id="layer-ordering">Layer ordering</h3>
+<p>Annotations stack in the order they are drawn. You can reorder them via the Edit menu or context menu:</p>
+<ul>
+<li><strong>Bring to front</strong> (Ctrl+Shift+]) — move above all other annotations</li>
+<li><strong>Send to back</strong> (Ctrl+Shift+[) — move below all other annotations</li>
+<li><strong>Move up</strong> (Ctrl+]) — swap with the annotation one layer above</li>
+<li><strong>Move down</strong> (Ctrl+[) — swap with the annotation one layer below</li>
+</ul>
+<p>Layer order is preserved when saving and re-opening images.</p>
 <h2 id="rectangle-r">Rectangle (R)</h2>
 <p>Click and drag to draw a rectangle. Supports border color, fill color, and corner radius.</p>
 <h2 id="ellipse-e">Ellipse (E)</h2>
@@ -828,6 +872,7 @@
 <p>Click and drag to draw a semi-transparent wide stroke, like a highlighter pen. Good for drawing attention to a region without obscuring it.</p>
 <h2 id="blur-b">Blur (B)</h2>
 <p>Click and drag to draw a blur region. The area is pixelated with a configurable block size (default 10px). Use this to obscure sensitive information.</p>
+<p>Blur regions always stay below other annotations in the layer stack — they only pixelate the background image, not annotations drawn on top. This means you can blur a region and then draw arrows or text over it without those being affected. Blur regions are not affected by layer ordering commands.</p>
 <h2 id="crop-c">Crop (C)</h2>
 <p>Click and drag to define a crop region, then confirm to trim the image.</p>
 
