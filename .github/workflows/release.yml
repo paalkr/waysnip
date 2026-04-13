@@ -41,3 +41,8 @@ jobs:
         with:
           files: dist/*
           body_path: /tmp/release_notes.md
+      - name: Deploy docs
+        run: |
+          pip install ".[docs]"
+          git fetch origin gh-pages
+          mkdocs gh-deploy --force
