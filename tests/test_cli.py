@@ -28,7 +28,7 @@ class TestDefaultCommand:
 class TestSubcommands:
     @pytest.mark.parametrize(
         "subcmd",
-        ["region", "window", "fullscreen", "gallery", "config"],
+        ["region", "fullscreen", "gallery", "config"],
     )
     def test_subcommand_recognized(self, subcmd):
         parser = build_parser()

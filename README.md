@@ -48,7 +48,6 @@ waysnip setup
 |--------|-----|
 | Region capture | Press **Print** or `waysnip region` |
 | Fullscreen capture | Press **Ctrl+Print** or `waysnip fullscreen` |
-| Window capture | `waysnip window` |
 | Open gallery | `waysnip gallery` |
 | Open settings | `waysnip config` |
 | Start tray only | `waysnip tray` |

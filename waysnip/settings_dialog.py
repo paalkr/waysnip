@@ -151,8 +151,8 @@ class SettingsDialog(QDialog):
         form.addRow("Enable tray icon:", self._tray_enabled)
 
         self._left_click = QComboBox()
-        self._left_click.addItems(["Region", "Window", "Fullscreen", "Gallery"])
-        _lc_map = {"region": 0, "window": 1, "fullscreen": 2, "gallery": 3}
+        self._left_click.addItems(["Region", "Fullscreen", "Gallery"])
+        _lc_map = {"region": 0, "fullscreen": 1, "gallery": 2}
         self._left_click.setCurrentIndex(
             _lc_map.get(self._config.tray.left_click_action, 0)
         )
@@ -217,7 +217,7 @@ class SettingsDialog(QDialog):
         self._config.editor.copy_on_save = self._copy_on_save.isChecked()
 
         self._config.tray.enabled = self._tray_enabled.isChecked()
-        lc_map = {0: "region", 1: "window", 2: "fullscreen", 3: "gallery"}
+        lc_map = {0: "region", 1: "fullscreen", 2: "gallery"}
         self._config.tray.left_click_action = lc_map.get(
             self._left_click.currentIndex(), "region"
         )

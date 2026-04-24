@@ -262,7 +262,7 @@ class TestCLIIntegration:
         assert args.command is None  # main() defaults to "region"
 
         # All subcommands
-        for cmd in ["region", "window", "fullscreen", "gallery", "config"]:
+        for cmd in ["region", "fullscreen", "gallery", "config"]:
             args = parser.parse_args([cmd])
             assert args.command == cmd
 

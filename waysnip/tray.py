@@ -43,7 +43,6 @@ class TrayIcon(QSystemTrayIcon):
         menu = QMenu()
 
         menu.addAction("Region Capture", self._app.do_capture_region)
-        menu.addAction("Window Capture", self._app.do_capture_window)
         menu.addAction("Fullscreen Capture", self._app.do_capture_fullscreen)
         menu.addSeparator()
         menu.addAction("Gallery", self._app.do_open_gallery)
@@ -64,7 +63,6 @@ class TrayIcon(QSystemTrayIcon):
 
         action_map = {
             "region": self._app.do_capture_region,
-            "window": self._app.do_capture_window,
             "fullscreen": self._app.do_capture_fullscreen,
             "gallery": self._app.do_open_gallery,
         }

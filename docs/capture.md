@@ -1,6 +1,6 @@
 # Capture
 
-WaySnip has three capture modes.
+WaySnip has two capture modes.
 
 ## Region capture (default)
 
@@ -19,14 +19,6 @@ waysnip fullscreen
 ```
 
 Captures the entire screen immediately and opens the editor. Bound to **Ctrl+PrintScreen** after running `waysnip setup`.
-
-## Window capture
-
-```bash
-waysnip window
-```
-
-Uses the XDG Desktop Portal in interactive mode. GNOME shows a dialog where you pick which window to capture. This is the only mode that triggers a permission dialog.
 
 ## Cursor visibility
 

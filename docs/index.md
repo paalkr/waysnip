@@ -1,10 +1,10 @@
 # WaySnip
 
-WaySnip is a lightweight screenshot and annotation tool for Wayland desktops. Capture a region, fullscreen, or window, then annotate with shapes, text, arrows, blur, and more. Annotations are stored in the PNG metadata so you can re-edit them later.
+WaySnip is a lightweight screenshot and annotation tool for Wayland desktops. Capture a region or the full screen, then annotate with shapes, text, arrows, blur, and more. Annotations are stored in the PNG metadata so you can re-edit them later.
 
 ## Features
 
-- Region, fullscreen, and window capture modes
+- Region and fullscreen capture modes
 - 11 annotation tools: select, rectangle, ellipse, arrow, line, text, numbered markers, freehand pen, highlight, blur, crop
 - Layer ordering: bring to front, send to back, move up/down
 - Per-tool drawing properties (each tool remembers its own color, width, opacity)

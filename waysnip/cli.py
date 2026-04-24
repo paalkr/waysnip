@@ -21,7 +21,6 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
 
     sub.add_parser("region", help="Region capture (default)")
-    sub.add_parser("window", help="Window capture (portal interactive mode)")
     sub.add_parser("fullscreen", help="Fullscreen capture")
     sub.add_parser("gallery", help="Open the screenshot gallery")
     sub.add_parser("tray", help="Start in system tray (no capture)")

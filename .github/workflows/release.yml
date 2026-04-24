@@ -41,7 +41,9 @@ jobs:
         with:
           files: dist/*
           body_path: /tmp/release_notes.md
+          prerelease: ${{ contains(github.ref_name, 'a') || contains(github.ref_name, 'b') || contains(github.ref_name, 'rc') }}
       - name: Deploy docs
+        if: ${{ !contains(github.ref_name, 'a') && !contains(github.ref_name, 'b') && !contains(github.ref_name, 'rc') }}
         run: |
           pip install ".[docs]"
           git fetch origin gh-pages

@@ -39,10 +39,6 @@ waysnip uninstall && pipx uninstall waysnip
 
 `waysnip uninstall` removes keybindings, the autostart entry, the launcher wrapper, and restores GNOME's default screenshot keys.
 
-## GNOME shows a permission dialog when capturing
-
-This only happens with window capture (`waysnip window`), which uses the XDG Desktop Portal in interactive mode. Region and fullscreen captures don't trigger any dialog.
-
 ## Multi-monitor: capture looks wrong
 
 Different DPI across monitors is a known limitation. Region and fullscreen captures work across all monitors, but mixed DPI setups can cause scaling issues. This is being improved.

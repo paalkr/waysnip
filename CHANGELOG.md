@@ -3,6 +3,14 @@
 All notable changes to WaySnip will be documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.5.0] - 2026-04-24
+
+### Removed
+- Window capture mode (`waysnip window`, tray "Window Capture" menu item, "Window" left-click action). The portal-based interactive backend was the only blocking subprocess loop in the app and was the proximate cause of a tray crash when the portal dialog was dismissed without taking a screenshot. GNOME's built-in `Super+Print` covers window capture for users who need it.
+
+### Fixed
+- Tray no longer freezes the Qt event loop when the GNOME portal dialog is cancelled. With the portal path removed entirely, region and fullscreen capture clicks can no longer queue up behind a stalled portal monitor and fire as a delayed burst.
+
 ## [0.4.0] - 2026-04-10
 
 ### Added

@@ -19,7 +19,7 @@ from waysnip.constants import APP_DISPLAY_NAME, SOCKET_NAME_TEMPLATE
 # Optional imports for modules built by other agents.  Stubs are used when
 # the real modules are not yet available.
 # ---------------------------------------------------------------------------
-from waysnip.capture.portal import capture_fullscreen, capture_interactive
+from waysnip.capture.portal import capture_fullscreen
 from waysnip.capture.region_selector import RegionSelector
 from waysnip.capture.clipboard import ClipboardManager
 from waysnip.editor.editor_window import EditorWindow
@@ -121,7 +121,6 @@ class WaySnipApp:
             return
         actions = {
             "region": self.do_capture_region,
-            "window": self.do_capture_window,
             "fullscreen": self.do_capture_fullscreen,
             "gallery": self.do_open_gallery,
             "config": self.do_open_settings,
@@ -161,16 +160,6 @@ class WaySnipApp:
         self._region_selector.region_selected.connect(_on_region_selected)
         self._region_selector.cancelled.connect(_on_cancelled)
         self._region_selector.show()
-
-    def do_capture_window(self) -> None:
-        path = capture_interactive()
-        if path is None:
-            return
-        pixmap = QPixmap(str(path))
-        if pixmap.isNull():
-            return
-        self._copy_to_clipboard(pixmap)
-        self._post_capture(pixmap)
 
     def do_capture_fullscreen(self) -> None:
         show_cursor = self._config.capture.show_cursor
