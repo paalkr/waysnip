@@ -393,17 +393,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#window-capture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Window capture
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#cursor-visibility" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -628,17 +617,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#window-capture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Window capture
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#cursor-visibility" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -692,7 +670,7 @@
 
 
 <h1 id="capture">Capture</h1>
-<p>WaySnip has three capture modes.</p>
+<p>WaySnip has two capture modes.</p>
 <h2 id="region-capture-default">Region capture (default)</h2>
 <div class="highlight"><pre><span></span><code>waysnip<span class="w"> </span>region
 </code></pre></div>
@@ -702,10 +680,6 @@
 <div class="highlight"><pre><span></span><code>waysnip<span class="w"> </span>fullscreen
 </code></pre></div>
 <p>Captures the entire screen immediately and opens the editor. Bound to <strong>Ctrl+PrintScreen</strong> after running <code>waysnip setup</code>.</p>
-<h2 id="window-capture">Window capture</h2>
-<div class="highlight"><pre><span></span><code>waysnip<span class="w"> </span>window
-</code></pre></div>
-<p>Uses the XDG Desktop Portal in interactive mode. GNOME shows a dialog where you pick which window to capture. This is the only mode that triggers a permission dialog.</p>
 <h2 id="cursor-visibility">Cursor visibility</h2>
 <p>By default the cursor is not included in captures. To include it, set <code>show_cursor = true</code> in the <code>[capture]</code> section of your config.</p>
 <h2 id="after-capture">After capture</h2>
