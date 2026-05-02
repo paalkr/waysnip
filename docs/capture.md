@@ -40,3 +40,15 @@ When `auto_copy_clipboard` is enabled (default), the capture is always copied to
 ## Multi-monitor
 
 WaySnip captures across all monitors in region and fullscreen modes. Different DPI monitors are a known limitation that is being improved.
+
+## Capture backends
+
+WaySnip dispatches to one of two screen-capture binaries based on the active compositor (read from `XDG_CURRENT_DESKTOP`):
+
+| Compositor | Preferred backend | Fall-through |
+|---|---|---|
+| GNOME, Unity | `gnome-screenshot` | `grim` |
+| sway, Hyprland, Wayfire, river, wlroots | `grim` | `gnome-screenshot` |
+| Other / unknown | `gnome-screenshot` | `grim` |
+
+If the preferred backend is missing or fails (timeout, nonzero return, empty output), WaySnip automatically tries the other one. Install whichever fits your compositor (see [Install](install.md)).

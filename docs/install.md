@@ -3,14 +3,22 @@
 ## Prerequisites
 
 - Python 3.12 or newer
-- Ubuntu 24.04 or similar Wayland-based desktop
+- A Wayland-based Linux desktop
 - `wl-clipboard` (for clipboard support)
-- `gnome-screenshot` (for screen capture)
+- One screen-capture binary, depending on your compositor:
+  - GNOME / Unity: `gnome-screenshot`
+  - sway, Hyprland, Wayfire, river, or other wlroots-based compositors: `grim`
+
+WaySnip auto-detects the compositor via `XDG_CURRENT_DESKTOP` and falls through to the other backend if the preferred one isn't installed or fails.
 
 Install system dependencies on Ubuntu/Debian:
 
 ```bash
+# GNOME / Unity
 sudo apt install wl-clipboard gnome-screenshot
+
+# sway / Hyprland / wlroots
+sudo apt install wl-clipboard grim
 ```
 
 ## Install via pipx (recommended)

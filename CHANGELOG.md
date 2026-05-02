@@ -3,6 +3,18 @@
 All notable changes to WaySnip will be documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.6.0b1] - 2026-05-02
+
+### Added
+- `grim` capture backend for sway, Hyprland, Wayfire, river, and other wlroots-based compositors
+- `XDG_CURRENT_DESKTOP` dispatch in `capture/portal.py`: GNOME / Unity → `gnome-screenshot` first, wlroots-based → `grim` first, with automatic fall-through to the other backend on any failure (missing binary, nonzero return, timeout, empty output)
+
+### Fixed
+- WaySnip no longer hangs on sway / wlroots compositors (closes #2). Fullscreen capture now picks the right backend for the active desktop.
+
+### Notes
+- Pre-release. Install with `pip install --pre waysnip` or `pipx install --pip-args '--pre' waysnip`.
+
 ## [0.5.0] - 2026-04-24
 
 ### Removed
