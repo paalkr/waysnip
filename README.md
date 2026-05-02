@@ -2,11 +2,11 @@
 
 Lightweight screenshot and annotation tool for Linux Wayland. Captures your screen, lets you select a region, annotate with shapes and text, and saves with a single shortcut. Built for documentation workflows and quick sharing.
 
-Tested on Ubuntu 24.04 with GNOME Shell 46 on Wayland.
+Tested on Ubuntu 24.04 with GNOME Shell 46. Also supports sway, Hyprland, Wayfire, river, and other wlroots-based compositors via `grim`.
 
 ## Features
 
-- Region, window, and fullscreen capture with frozen screen (menus don't close)
+- Region and fullscreen capture with frozen screen (menus don't close)
 - 11 annotation tools: rectangle, ellipse, arrow, line, text, numbered markers, freehand pen, highlight, blur/pixelate, crop
 - Color picker with recent colors, stroke width, opacity, font controls
 - Undo/redo, clone, multi-select, keyboard shortcuts for every tool
@@ -38,9 +38,12 @@ waysnip setup
 
 ### Requirements
 
-- Linux with Wayland (GNOME recommended)
+- Linux with Wayland
 - Python 3.12+
-- `gnome-screenshot` and `wl-clipboard` (pre-installed on Ubuntu 24.04)
+- `wl-clipboard`
+- `gnome-screenshot` on GNOME / Unity, `grim` on sway / Hyprland / Wayfire / wlroots (`gnome-screenshot` is pre-installed on Ubuntu 24.04)
+
+WaySnip auto-detects the active compositor via `XDG_CURRENT_DESKTOP` and falls through to the other backend if the preferred one isn't installed or fails.
 
 ## Quick start
 
