@@ -3,7 +3,7 @@
 from pathlib import Path
 
 APP_NAME = "waysnip"
-APP_VERSION = "0.6.0b1"
+APP_VERSION = "0.6.0b2"
 APP_DISPLAY_NAME = "WaySnip"
 
 # Paths

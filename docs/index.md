@@ -18,7 +18,7 @@ WaySnip is a lightweight screenshot and annotation tool for Wayland desktops. Ca
 ## Quick install
 
 ```bash
-pipx install waysnip
+uv tool install waysnip
 waysnip setup
 ```
 

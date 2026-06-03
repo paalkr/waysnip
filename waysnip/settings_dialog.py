@@ -87,6 +87,10 @@ class SettingsDialog(QDialog):
         self._show_cursor.setChecked(self._config.capture.show_cursor)
         form.addRow("Show cursor:", self._show_cursor)
 
+        self._auto_save = QCheckBox("Save snips to the gallery without pressing Ctrl+S")
+        self._auto_save.setChecked(self._config.capture.auto_save)
+        form.addRow("Auto-save:", self._auto_save)
+
         self._magnifier_enabled = QCheckBox()
         self._magnifier_enabled.setChecked(self._config.magnifier.enabled)
         form.addRow("Magnifier enabled:", self._magnifier_enabled)
@@ -205,6 +209,7 @@ class SettingsDialog(QDialog):
             self._after_capture.currentIndex(), "editor"
         )
         self._config.capture.show_cursor = self._show_cursor.isChecked()
+        self._config.capture.auto_save = self._auto_save.isChecked()
 
         self._config.magnifier.enabled = self._magnifier_enabled.isChecked()
         self._config.magnifier.zoom = self._magnifier_zoom.value()

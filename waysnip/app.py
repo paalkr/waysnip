@@ -198,16 +198,31 @@ class WaySnipApp:
     def _post_capture(self, pixmap) -> None:
         """Open editor or save, depending on config."""
         action = self._config.capture.after_capture
+
+        # Auto-save: persist the fresh snip to the gallery immediately so the
+        # user doesn't have to press Ctrl+S.  Modes that already save ("save",
+        # "clipboard+save") reuse this file instead of writing a second one.
+        saved_path = None
+        if self._config.capture.auto_save:
+            saved_path = self._save_to_gallery(pixmap)
+
         if action == "editor":
-            self._open_editor(pixmap)
-        elif action == "save":
-            self._save_pixmap(pixmap)
-        elif action == "clipboard+save":
-            self._save_pixmap(pixmap)
+            self._open_editor(pixmap, autosaved_path=saved_path)
+        elif action in ("save", "clipboard+save"):
+            if saved_path is None:
+                self._save_to_gallery(pixmap)
         # "clipboard" — already copied above, nothing more to do.
 
-    def _open_editor(self, pixmap) -> None:
-        win = EditorWindow(pixmap, self._config)
+    def _save_to_gallery(self, pixmap):
+        """Save a fresh (un-annotated) snip and refresh the gallery."""
+        path = self._save_pixmap(pixmap, original_pixmap=pixmap)
+        if self._gallery_window is not None:
+            self._gallery_window.refresh()
+        return path
+
+    def _open_editor(self, pixmap, autosaved_path=None) -> None:
+        autosaved = str(autosaved_path) if autosaved_path else None
+        win = EditorWindow(pixmap, self._config, autosaved_path=autosaved)
         # Keep a reference so the window isn't garbage collected
         if not hasattr(self, "_editor_windows"):
             self._editor_windows = []

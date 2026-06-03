@@ -3,6 +3,22 @@
 All notable changes to WaySnip will be documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.6.0b2] - 2026-06-03
+
+### Added
+- `org.freedesktop.portal.Screenshot` D-Bus capture backend, inserted between the preferred binary and the fallback in the dispatch chain. Fixes capture on GNOME 49+ / Ubuntu 26.04, where `gnome-screenshot -f` fails with `AccessDenied` (Mutter dropped it from the private screenshot API allow-list). The backend is event-driven via QtDBus and cannot block the Qt event loop.
+- `waysnip setup` pre-grants the portal screenshot permission so portal captures stay silent (no per-shot dialog); `waysnip uninstall` removes the grant.
+- `capture.auto_save` option (default `true`): fresh snips are saved to the gallery immediately, and Ctrl+C in the editor also persists the snip, so you no longer have to press Ctrl+S. Toggle in Settings → Capture.
+
+### Fixed
+- Region selection on displays with scaling (and mixed-scale multi-monitor setups) now maps the frozen screenshot correctly. `grim` composites the layout at the highest output scale, so the image is larger than the logical desktop; the overlay, magnifier, and crop now scale screenshot coordinates instead of assuming 1:1, so you snip what's actually on screen.
+
+### Changed
+- Recommended install is now `uv tool install waysnip`; pipx and pip remain documented alternatives.
+
+### Notes
+- Pre-release. Install with `pip install --pre waysnip` or `uv tool install waysnip==0.6.0b2`.
+
 ## [0.6.0b1] - 2026-05-02
 
 ### Added

@@ -33,6 +33,7 @@ All values shown are the defaults:
 after_capture = "editor"       # "editor", "clipboard", "save", "clipboard+save"
 auto_copy_clipboard = true
 show_cursor = false
+auto_save = true               # save snips to the gallery without pressing Ctrl+S
 
 [save]
 directory = "~/Pictures/Screenshots"
@@ -62,6 +63,7 @@ left_click_action = "region"
 | `after_capture` | string | `"editor"` | What to do after capture: `"editor"`, `"clipboard"`, `"save"`, `"clipboard+save"` |
 | `auto_copy_clipboard` | bool | `true` | Always copy captures to clipboard |
 | `show_cursor` | bool | `false` | Include the cursor in captures |
+| `auto_save` | bool | `true` | Save fresh snips to the gallery immediately, and persist on Ctrl+C in the editor, without needing Ctrl+S |
 
 ### [save]
 

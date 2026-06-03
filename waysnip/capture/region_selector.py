@@ -46,6 +46,39 @@ _GRID_COLOR = QColor(200, 200, 200, 80)
 _CROSSHAIR_COLOR = QColor(255, 0, 0, 160)
 
 
+# ──────────────────────────────────────────────────────────────────────
+# Logical → pixel mapping
+#
+# The full-layout screenshot is not necessarily 1:1 with Qt's logical
+# coordinates.  grim renders the layout at the highest scale factor of
+# all outputs, and gnome-screenshot captures physical pixels, so on any
+# setup with display scaling the image is larger than the logical
+# virtual desktop.  All sampling from the screenshot must go through
+# this mapping; widget-space drawing (handles, borders) stays logical.
+# ──────────────────────────────────────────────────────────────────────
+
+def compute_screenshot_mapping(image_size: QSize, virtual: QRect) -> tuple[float, QPoint]:
+    """Return (scale, origin) mapping logical virtual-desktop coords to image pixels.
+
+    ``scale`` is pixels-per-logical-unit, derived from the image width vs the
+    virtual desktop width.  ``origin`` is the logical top-left of the virtual
+    desktop, which corresponds to pixel (0, 0) in the image.
+    """
+    if virtual.width() <= 0 or image_size.width() <= 0:
+        return 1.0, QPoint(0, 0)
+    return image_size.width() / virtual.width(), virtual.topLeft()
+
+
+def logical_to_pixel_rect(rect: QRect, scale: float, origin: QPoint) -> QRectF:
+    """Map a rect in logical virtual-desktop coords to screenshot pixel coords."""
+    return QRectF(
+        (rect.x() - origin.x()) * scale,
+        (rect.y() - origin.y()) * scale,
+        rect.width() * scale,
+        rect.height() * scale,
+    )
+
+
 class _Handle(Enum):
     """Resize handle positions."""
 
@@ -100,11 +133,16 @@ class RegionSelector(QObject):
 
         # Create one overlay per screen.
         self._overlays: list[_ScreenOverlay] = []
+        virtual = QRect()
         app = QApplication.instance()
         if app is not None:
             for screen in app.screens():
+                virtual = virtual.united(screen.geometry())
                 overlay = _ScreenOverlay(screen, self)
                 self._overlays.append(overlay)
+
+        # Logical → screenshot-pixel mapping (handles display scaling).
+        self._scale, self._origin = compute_screenshot_mapping(screenshot.size(), virtual)
 
     # ── Public methods ────────────────────────────────────────────────
 
@@ -266,7 +304,11 @@ class RegionSelector(QObject):
         sel = self._selection.normalized()
         if sel.width() < 1 or sel.height() < 1:
             return
-        cropped = self._screenshot.copy(sel)
+        src = logical_to_pixel_rect(sel, self._scale, self._origin)
+        crop = src.toRect().intersected(self._screenshot.rect())
+        if crop.width() < 1 or crop.height() < 1:
+            return
+        cropped = self._screenshot.copy(crop)
         self.region_selected.emit(cropped)
         self.close()
 
@@ -308,14 +350,12 @@ class _ScreenOverlay(QWidget):
         g = self._group
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
 
         # Draw the portion of the screenshot that belongs to this screen.
         sr = self._screen.geometry()
-        p.drawPixmap(
-            0, 0, sr.width(), sr.height(),
-            g._screenshot,
-            sr.x(), sr.y(), sr.width(), sr.height(),
-        )
+        src = logical_to_pixel_rect(sr, g._scale, g._origin)
+        p.drawPixmap(QRectF(0, 0, sr.width(), sr.height()), g._screenshot, src)
 
         sel = g._selection.normalized()
 
@@ -352,7 +392,9 @@ class _ScreenOverlay(QWidget):
         p.end()
 
     def _draw_dimension_label(self, p: QPainter, local_sel: QRect, virt_sel: QRect) -> None:
-        text = f"{virt_sel.width()} \u00d7 {virt_sel.height()}"
+        # Show the output pixel size, which is what the saved file will have.
+        k = self._group._scale
+        text = f"{round(virt_sel.width() * k)} \u00d7 {round(virt_sel.height() * k)}"
         font = QFont("Sans", 10)
         p.setFont(font)
         fm = p.fontMetrics()
@@ -402,11 +444,13 @@ class _ScreenOverlay(QWidget):
         p.setClipPath(clip_path)
 
         # Sample from the full screenshot in virtual coords.
+        g = self._group
         vcx = local_cursor.x() + self._screen_origin.x()
         vcy = local_cursor.y() + self._screen_origin.y()
         src_rect = QRect(vcx - src_half, vcy - src_half, src_half * 2, src_half * 2)
+        src = logical_to_pixel_rect(src_rect, g._scale, g._origin)
         dst_rect = QRect(lx, ly, _MAGNIFIER_SIZE, _MAGNIFIER_SIZE)
-        p.drawPixmap(dst_rect, self._group._screenshot, src_rect)
+        p.drawPixmap(QRectF(dst_rect), g._screenshot, src)
 
         # Grid lines.
         pixel_size = _MAGNIFIER_SIZE / (src_half * 2)

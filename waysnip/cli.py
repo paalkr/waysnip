@@ -154,6 +154,10 @@ Keywords=screenshot;snip;capture;annotate;
     app_desktop.write_text(app_content)
     print(f"App launcher installed: {app_desktop}")
 
+    # Pre-grant silent portal screenshots (needed on GNOME 49+ where
+    # gnome-screenshot lost access to the shell's screenshot API).
+    _grant_portal_permission()
+
     # Install keybindings using the wrapper
     _setup_keybindings(str(wrapper))
 
@@ -166,6 +170,49 @@ Keywords=screenshot;snip;capture;annotate;
     print("  - PrintScreen → region capture")
     print("  - Ctrl+PrintScreen → fullscreen capture")
     print(f"  - Using: {waysnip_bin}")
+
+
+def _grant_portal_permission() -> None:
+    """Grant WaySnip silent screenshots in the xdg portal permission store.
+
+    The desktop portal resolves the app id "waysnip" from the systemd scope
+    created when WaySnip is launched via its .desktop entry. With this grant,
+    the org.freedesktop.portal.Screenshot backend captures without showing a
+    permission dialog. Best-effort: skipped silently when the permission
+    store isn't available.
+    """
+    try:
+        result = subprocess.run(
+            [
+                "gdbus", "call", "--session",
+                "-d", "org.freedesktop.impl.portal.PermissionStore",
+                "-o", "/org/freedesktop/impl/portal/PermissionStore",
+                "-m", "org.freedesktop.impl.portal.PermissionStore.SetPermission",
+                "screenshot", "true", "screenshot", "waysnip", "['yes']",
+            ],
+            capture_output=True,
+        )
+    except FileNotFoundError:
+        return
+    if result.returncode == 0:
+        print("Portal screenshot permission granted")
+
+
+def _revoke_portal_permission() -> None:
+    """Remove the WaySnip entry from the portal permission store (best-effort)."""
+    try:
+        subprocess.run(
+            [
+                "gdbus", "call", "--session",
+                "-d", "org.freedesktop.impl.portal.PermissionStore",
+                "-o", "/org/freedesktop/impl/portal/PermissionStore",
+                "-m", "org.freedesktop.impl.portal.PermissionStore.DeletePermission",
+                "screenshot", "screenshot", "waysnip",
+            ],
+            capture_output=True,
+        )
+    except FileNotFoundError:
+        pass
 
 
 def _restart_media_keys() -> None:
@@ -256,6 +303,9 @@ def _uninstall() -> None:
     if wrapper.exists():
         wrapper.unlink()
         print(f"Removed: {wrapper}")
+
+    # Remove the portal permission grant
+    _revoke_portal_permission()
 
     # Restore GNOME default screenshot keys
     def gsettings(*args):

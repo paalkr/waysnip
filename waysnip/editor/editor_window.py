@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import (
@@ -57,11 +58,16 @@ class EditorWindow(QMainWindow):
         parent: QWidget | None = None,
         annotations: list[dict] | None = None,
         save_path: str | None = None,
+        autosaved_path: str | None = None,
     ) -> None:
         super().__init__(parent)
         self._config = config or AppConfig.load()
+        # save_path: re-editing an existing file → already fully saved.
+        # autosaved_path: a fresh snip auto-saved at capture time. The base
+        # image is on disk, but annotations are still unsaved, so Ctrl+S
+        # overwrites this path and the close prompt stays active.
+        self._save_path: str | None = save_path or autosaved_path
         self._saved = save_path is not None
-        self._save_path: str | None = save_path
 
         self.setWindowTitle(f"{APP_DISPLAY_NAME} - Editor")
         self._size_window_to_image(pixmap)
@@ -469,38 +475,24 @@ class EditorWindow(QMainWindow):
         self._update_status()
 
     def _copy_to_clipboard(self) -> None:
-        pixmap = self._scene.render_to_pixmap()
+        flattened = self._scene.render_to_pixmap()
         clipboard = QGuiApplication.clipboard()
         if clipboard:
-            clipboard.setPixmap(pixmap)
-        self._status_bar.showMessage("Copied to clipboard", 2000)
+            clipboard.setPixmap(flattened)
+
+        # With auto-save on, copying also persists the snip (to its existing
+        # file if it has one, otherwise a fresh file) so the gallery stays in
+        # sync without a separate Ctrl+S.
+        if self._config.capture.auto_save:
+            path = self._write_to(self._save_path, flattened=flattened)
+            self._status_bar.showMessage(
+                f"Copied to clipboard, saved to {path.name}", 2000
+            )
+        else:
+            self._status_bar.showMessage("Copied to clipboard", 2000)
 
     def _save(self) -> None:
-        if self._save_path:
-            self._do_save(self._save_path)
-        else:
-            self._save_auto()
-
-    def _save_auto(self) -> None:
-        """Save using config pattern (no dialog)."""
-        from waysnip.save import save_screenshot
-
-        flattened = self._scene.render_to_pixmap()
-        annotations = [item.serialize() for item in self._scene.get_all_annotations()]
-        original = self._scene.background_pixmap
-
-        path = save_screenshot(flattened, annotations, original, self._config)
-        self._save_path = str(path)
-        self._saved = True
-        self.image_saved.emit(str(path))
-
-        # Copy to clipboard if enabled
-        if self._config.editor.copy_on_save:
-            from waysnip.capture.clipboard import ClipboardManager
-            ClipboardManager.copy_image_from_pixmap(flattened)
-            self._status_bar.showMessage(f"Saved to {path.name} (copied to clipboard)", 3000)
-        else:
-            self._status_bar.showMessage(f"Saved to {path.name}", 3000)
+        self._write_to(self._save_path)
 
     def _save_as(self) -> None:
         from datetime import datetime
@@ -514,37 +506,40 @@ class EditorWindow(QMainWindow):
             "PNG Image (*.png);;All Files (*)",
         )
         if path:
-            self._do_save(path)
+            self._write_to(path)
 
-    def _do_save(self, path: str) -> None:
-        """Save to a specific path (from Save As dialog)."""
-        from pathlib import Path as _Path
+    def _write_to(self, dest: str | None, flattened: QPixmap | None = None) -> Path:
+        """Save the current image + annotations.
 
-        flattened = self._scene.render_to_pixmap()
+        ``dest`` None saves to a new file from the configured pattern;
+        otherwise it overwrites that path in place.  ``flattened`` lets callers
+        pass an already-rendered pixmap (e.g. the copy path) to avoid a second
+        render.  Returns the path written.
+        """
+        from waysnip.save import save_screenshot
+
+        if flattened is None:
+            flattened = self._scene.render_to_pixmap()
         annotations = [item.serialize() for item in self._scene.get_all_annotations()]
         original = self._scene.background_pixmap
 
-        # Save with metadata embedding
-        image = flattened.toImage()
-        import json
-        from waysnip.constants import META_KEY_ANNOTATIONS, META_KEY_ORIGINAL
-        if annotations:
-            image.setText(META_KEY_ANNOTATIONS, json.dumps(annotations))
-        if original and self._config.save.mode == "annotated":
-            from waysnip.save import _pixmap_to_base64
-            image.setText(META_KEY_ORIGINAL, _pixmap_to_base64(original))
-        image.save(path, "PNG")
-
-        self._save_path = path
+        path = save_screenshot(
+            flattened, annotations, original, self._config,
+            dest=Path(dest) if dest else None,
+        )
+        self._save_path = str(path)
         self._saved = True
-        self.image_saved.emit(path)
+        self.image_saved.emit(str(path))
 
         if self._config.editor.copy_on_save:
             from waysnip.capture.clipboard import ClipboardManager
             ClipboardManager.copy_image_from_pixmap(flattened)
-            self._status_bar.showMessage(f"Saved to {_Path(path).name} (copied to clipboard)", 3000)
+            self._status_bar.showMessage(
+                f"Saved to {path.name} (copied to clipboard)", 3000
+            )
         else:
-            self._status_bar.showMessage(f"Saved to {_Path(path).name}", 3000)
+            self._status_bar.showMessage(f"Saved to {path.name}", 3000)
+        return path
 
     # --- Status bar ---
 

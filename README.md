@@ -20,9 +20,11 @@ Tested on Ubuntu 24.04 with GNOME Shell 46. Also supports sway, Hyprland, Wayfir
 ## Install
 
 ```bash
-pipx install waysnip
+uv tool install waysnip
 waysnip setup
 ```
+
+`pipx install waysnip` and `pip install --user waysnip` work too.
 
 `waysnip setup` binds PrintScreen to region capture, Ctrl+PrintScreen to fullscreen, and enables tray autostart on login.
 
@@ -93,6 +95,7 @@ Config file: `~/.config/waysnip/config.toml`
 after_capture = "editor"    # "editor", "clipboard", "save", "clipboard+save"
 auto_copy_clipboard = true
 show_cursor = false
+auto_save = true            # save snips to the gallery without pressing Ctrl+S
 
 [save]
 directory = "~/Pictures/Screenshots"
@@ -114,7 +117,7 @@ Edit directly: `waysnip config --edit`
 
 ```bash
 waysnip uninstall
-pipx uninstall waysnip
+uv tool uninstall waysnip   # or: pipx uninstall waysnip
 ```
 
 `waysnip uninstall` restores GNOME's default screenshot keys and removes the autostart entry.
