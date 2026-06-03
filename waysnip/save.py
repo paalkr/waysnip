@@ -40,6 +40,7 @@ def save_screenshot(
     annotations: list[dict],
     original_pixmap: QPixmap | None,
     config: AppConfig,
+    dest: Path | None = None,
 ) -> Path:
     """Save a screenshot to disk with optional annotation metadata.
 
@@ -53,16 +54,18 @@ def save_screenshot(
         The un-annotated capture, embedded so the file can be re-edited later.
     config:
         Application config (provides save directory, filename pattern, mode).
+    dest:
+        Explicit destination path (overwrites in place). When None, a new file
+        is generated from the configured directory + filename pattern.
 
     Returns
     -------
     Path to the saved file.
     """
-    now = datetime.now()
-    filename = now.strftime(config.save.pattern)
-
-    save_dir = config.get_save_directory()
-    dest = save_dir / filename
+    if dest is None:
+        now = datetime.now()
+        filename = now.strftime(config.save.pattern)
+        dest = config.get_save_directory() / filename
 
     # If the pattern contains sub-directories (e.g. "%Y-%m/Screenshot_..."),
     # make sure they exist.

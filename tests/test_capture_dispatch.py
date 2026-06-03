@@ -33,13 +33,27 @@ class TestBackendOrder:
         monkeypatch.setenv("XDG_CURRENT_DESKTOP", xdg)
         order = portal._backend_order()
         assert order[0] == expected_first
-        assert len(order) == 2
-        assert set(order) == {"gnome-screenshot", "grim"}
+        assert len(order) == 3
+        assert set(order) == {"gnome-screenshot", "portal", "grim"}
+
+    def test_portal_is_second_choice_everywhere(self, monkeypatch):
+        for xdg in ("GNOME", "sway", "KDE", ""):
+            monkeypatch.setenv("XDG_CURRENT_DESKTOP", xdg)
+            assert portal._backend_order()[1] == "portal"
 
     def test_no_xdg_var_falls_back_to_gnome_first(self, monkeypatch):
         monkeypatch.delenv("XDG_CURRENT_DESKTOP", raising=False)
         order = portal._backend_order()
         assert order[0] == "gnome-screenshot"
+
+
+@pytest.fixture(autouse=True)
+def _stub_portal_backend(monkeypatch):
+    """Keep dispatch tests away from the real D-Bus portal.
+
+    Tests that want portal behavior override _BACKENDS["portal"] themselves.
+    """
+    monkeypatch.setitem(portal._BACKENDS, "portal", lambda path, show_cursor: False)
 
 
 def _fake_run(written: dict[str, bool]):
@@ -181,6 +195,34 @@ class TestCaptureFullscreenDispatch:
         assert result is not None and result.exists()
         result.unlink()
         assert "-c" in seen_cmd[0]
+
+    def test_gnome_falls_through_to_portal(self, monkeypatch):
+        """GNOME 49+ scenario: gnome-screenshot AccessDenied → portal works."""
+        monkeypatch.setenv("XDG_CURRENT_DESKTOP", "GNOME")
+        monkeypatch.setattr(
+            portal.subprocess, "run",
+            _fake_run({"gnome-screenshot": False, "grim": False}),
+        )
+
+        def fake_portal(path: Path, show_cursor: bool) -> bool:
+            path.write_bytes(b"fake-png")
+            return True
+
+        monkeypatch.setitem(portal._BACKENDS, "portal", fake_portal)
+        result = portal.capture_fullscreen()
+        assert result is not None and result.exists()
+        result.unlink()
+
+    def test_portal_failure_falls_through_to_grim(self, monkeypatch):
+        monkeypatch.setenv("XDG_CURRENT_DESKTOP", "GNOME")
+        monkeypatch.setattr(
+            portal.subprocess, "run",
+            _fake_run({"gnome-screenshot": False, "grim": True}),
+        )
+        # autouse fixture already stubs portal to fail
+        result = portal.capture_fullscreen()
+        assert result is not None and result.exists()
+        result.unlink()
 
     def test_empty_output_file_treated_as_failure(self, monkeypatch):
         monkeypatch.setenv("XDG_CURRENT_DESKTOP", "GNOME")

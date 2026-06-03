@@ -24,6 +24,9 @@ class CaptureConfig:
     after_capture: str = "editor"  # "editor", "clipboard", "save", "clipboard+save"
     auto_copy_clipboard: bool = True
     show_cursor: bool = False
+    # Keep snips in the gallery without pressing Ctrl+S: save fresh captures
+    # immediately, and persist on Ctrl+C copy in the editor.
+    auto_save: bool = True
 
 
 @dataclass

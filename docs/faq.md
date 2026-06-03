@@ -42,7 +42,7 @@ Or edit `~/.config/waysnip/config.toml` directly and change `directory` under `[
 ## How do I uninstall completely?
 
 ```bash
-waysnip uninstall && pipx uninstall waysnip
+waysnip uninstall && uv tool uninstall waysnip
 ```
 
 `waysnip uninstall` removes keybindings, the autostart entry, the launcher wrapper, and restores GNOME's default screenshot keys.
