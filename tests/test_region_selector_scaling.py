@@ -90,6 +90,33 @@ class TestLogicalToPixelRect:
         assert src.getRect() == (3840, 0, 2560, 1440)
 
 
+class TestPressDoesNotClobberMapping:
+    """Regression: the selection anchor (_origin, set on mouse press) must not
+    collide with the screenshot mapping origin (_img_origin). A collision made
+    the frozen image jump by the click offset the moment a drag started."""
+
+    def test_press_leaves_img_origin_untouched(self, qapp):
+        pm = QPixmap(800, 600)
+        pm.fill(QColor("gray"))
+        sel = RegionSelector(pm)
+        before = QPoint(sel._img_origin)
+
+        overlay = sel._overlays[0] if sel._overlays else None
+        sel.handle_mouse_press(QPoint(300, 250), overlay)
+
+        # The selection anchor moved to the click...
+        assert sel._origin == QPoint(300, 250)
+        # ...but the screenshot mapping origin is unchanged.
+        assert sel._img_origin == before
+
+    def test_img_origin_and_origin_are_distinct_attributes(self, qapp):
+        pm = QPixmap(800, 600)
+        pm.fill(QColor("gray"))
+        sel = RegionSelector(pm)
+        assert hasattr(sel, "_img_origin")
+        assert hasattr(sel, "_origin")
+
+
 def _quadrant_pixmap(w: int, h: int) -> QPixmap:
     """Pixmap with four solid-colour quadrants for crop verification."""
     pm = QPixmap(w, h)
@@ -110,7 +137,7 @@ class TestConfirmSelectionCrop:
         # The offscreen test platform has a single synthetic screen, so the
         # auto-computed mapping is meaningless here — inject the scenario.
         selector._scale = scale
-        selector._origin = origin
+        selector._img_origin = origin
         return selector
 
     def test_crop_at_scale_two_returns_physical_pixels(self, qapp):

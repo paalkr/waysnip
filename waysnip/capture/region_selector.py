@@ -142,7 +142,11 @@ class RegionSelector(QObject):
                 self._overlays.append(overlay)
 
         # Logical → screenshot-pixel mapping (handles display scaling).
-        self._scale, self._origin = compute_screenshot_mapping(screenshot.size(), virtual)
+        # NOTE: named _img_origin, distinct from self._origin (the selection
+        # anchor set on mouse press) — they must not collide.
+        self._scale, self._img_origin = compute_screenshot_mapping(
+            screenshot.size(), virtual
+        )
 
     # ── Public methods ────────────────────────────────────────────────
 
@@ -304,7 +308,7 @@ class RegionSelector(QObject):
         sel = self._selection.normalized()
         if sel.width() < 1 or sel.height() < 1:
             return
-        src = logical_to_pixel_rect(sel, self._scale, self._origin)
+        src = logical_to_pixel_rect(sel, self._scale, self._img_origin)
         crop = src.toRect().intersected(self._screenshot.rect())
         if crop.width() < 1 or crop.height() < 1:
             return
@@ -354,7 +358,7 @@ class _ScreenOverlay(QWidget):
 
         # Draw the portion of the screenshot that belongs to this screen.
         sr = self._screen.geometry()
-        src = logical_to_pixel_rect(sr, g._scale, g._origin)
+        src = logical_to_pixel_rect(sr, g._scale, g._img_origin)
         p.drawPixmap(QRectF(0, 0, sr.width(), sr.height()), g._screenshot, src)
 
         sel = g._selection.normalized()
@@ -448,7 +452,7 @@ class _ScreenOverlay(QWidget):
         vcx = local_cursor.x() + self._screen_origin.x()
         vcy = local_cursor.y() + self._screen_origin.y()
         src_rect = QRect(vcx - src_half, vcy - src_half, src_half * 2, src_half * 2)
-        src = logical_to_pixel_rect(src_rect, g._scale, g._origin)
+        src = logical_to_pixel_rect(src_rect, g._scale, g._img_origin)
         dst_rect = QRect(lx, ly, _MAGNIFIER_SIZE, _MAGNIFIER_SIZE)
         p.drawPixmap(QRectF(dst_rect), g._screenshot, src)
 
