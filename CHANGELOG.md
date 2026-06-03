@@ -3,6 +3,11 @@
 All notable changes to WaySnip will be documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.6.0b3] - 2026-06-03
+
+### Fixed
+- Region selection: the frozen screenshot jumped by the click offset (down and to the right on a multi-monitor layout) the moment you pressed to start selecting. The mixed-scale fix in 0.6.0b2 reused the `_origin` attribute that the selection logic already used for its drag anchor, so the first mouse press overwrote the image-mapping origin. Renamed the mapping origin to `_img_origin`; added a regression test.
+
 ## [0.6.0b2] - 2026-06-03
 
 ### Added
